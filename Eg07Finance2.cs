@@ -78,19 +78,22 @@ static double takeInputsRD(double principal ,double interestRate, double timeInY
         double res;
 
 
-        switch(opt){
-            case 1:
-                res=emi.takeInputs();
-                return res;
+        switch (opt)
+            {
+                case 1:
+                    res = TakeInputs(principal, interestRate, timeInYears);
+                    Console.WriteLine($"The EMI is: {res}");
+                    break;
 
-            case 2:
-                return rd.takeInputsRD();
+                case 2:
+                    res = TakeInputsRD(principal, interestRate, timeInYears);
+                    Console.WriteLine($"The Final Amount for RD is: {res}");
+                    break;
 
-            default:
-                return null;
-
-        }
-
+                default:
+                    Console.WriteLine("Invalid option selected.");
+                    break;
+            }
         
 
     }
