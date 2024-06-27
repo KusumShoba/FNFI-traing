@@ -50,62 +50,76 @@ class ExpenseManager
 
 class Eg08
 {
-    static void Main(string[] args)
-    {
-        ExpenseManager ex=new ExpenseManager();
-        ex.AddNewExpense(ex);
-        ex.UpdateExpenses(ex);
-        ex.FindById(id);
-        // ex.Id=1;
-        // ex.Description="Grocery";
-        // ex.Amt=5000;
-        // ex.Date=DateTime.Today;
+    switch (choice)
+            {
+                case "N":
+                    Console.WriteLine("Enter Id:");
+                    int id = int.Parse(Console.ReadLine());
+                    Console.WriteLine("Enter Description:");
+                    string description = Console.ReadLine();
+                    Console.WriteLine("Enter Amount:");
+                    double amount = double.Parse(Console.ReadLine());
+                    Console.WriteLine("Enter Date (yyyy-MM-dd):");
+                    DateTime date = DateTime.Parse(Console.ReadLine());
 
+                    Expense newExpense = new Expense
+                    {
+                        Id = id,
+                        Description = description,
+                        Amt = amount,
+                        Date = date
+                    };
 
-// //Creating few more objects of the expenses and iterating through them
-       
-//         Expense ex2=new Expense();
-//         ex2.Id=2;
-//         ex2.Description="Luxtury";
-//         ex2.Amt=50000;
-//         ex2.Date=DateTime.Today;
+                    manager.AddNewExpense(newExpense);
+                    Console.WriteLine("Expense added successfully.");
+                    break;
 
-//         Expense ex3=new Expense();
-//         ex3.Id=3;
-//         ex3.Description="Needs";
-//         ex3.Amt=25000;
-//         ex3.Date=DateTime.Today;
+                case "F":
+                    Console.WriteLine("Enter Id to find:");
+                    int findId = int.Parse(Console.ReadLine());
+                    Expense foundExpense = manager.FindById(findId);
+                    if (foundExpense != null)
+                    {
+                        Console.WriteLine($"Found Expense: Id={foundExpense.Id}, Description={foundExpense.Description}, Amount={foundExpense.Amt}, Date={foundExpense.Date}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Expense not found.");
+                    }
+                    break;
 
+                case "U":
+                    Console.WriteLine("Enter Id to update:");
+                    int updateId = int.Parse(Console.ReadLine());
+                    Console.WriteLine("Enter New Description:");
+                    string newDescription = Console.ReadLine();
+                    Console.WriteLine("Enter New Amount:");
+                    double newAmount = double.Parse(Console.ReadLine());
 
-        // foreach(var expense in ex){
-        // Console.WriteLine("***********Expenses Details*****************");
-        // Console.WriteLine("{0} is the id"+expense.Id);
-        // Console.WriteLine("{0} is the Description"+expense.Description);
-        // Console.WriteLine("{0} is the Amt"+expense.Amt);
-        // Console.WriteLine("{0} is the Date"+expense.Date);
-        // }
+                    Expense updatedExpense = new Expense
+                    {
+                        Id = updateId,
+                        Description = newDescription,
+                        Amt = newAmount
+                    };
 
-        // string choice=Console.ReadLine();
+                    try
+                    {
+                        manager.UpdateExpenses(updatedExpense);
+                        Console.WriteLine("Expense updated successfully.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                    break;
 
-        // switch(choice)
-        // {
-        //     case "N":
-        //     AddNewExpense(ex);
-        //     break;
+                case "Q":
+                    Console.WriteLine("Quitting the program.");
+                    return;
 
-        //     case "F":
-        //     FindById(ex);
-        //     break;
-
-        //     case "U":
-        //     UpdateExpenses(int id);
-        //     break;
-
-        //     default:
-        //     Console.WriteLine("Invalid choice");
-        //     break;
-        // }
-
-
-    }
+                default:
+                    Console.WriteLine("Invalid choice.");
+                    break;
+            }
 }
