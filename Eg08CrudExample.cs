@@ -14,6 +14,7 @@ class Expense
 
 class ExpenseManager
 {
+    
 
     private List<Expense> exs=new List<Expense>();
 
@@ -50,6 +51,13 @@ class ExpenseManager
 
 class Eg08
 {
+    ExpenseManager ex=new ExpenseManager();
+    Console.WriteLine("Enter ur choice :");
+    Console.WriteLine("1. N :- Add new element");
+    Console.WriteLine("2. F :- Find the element by Id");
+    Console.WriteLine("3. U :- Update the element");
+    string choice=Console.ReadLine();
+
     switch (choice)
             {
                 case "N":
