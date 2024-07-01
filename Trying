@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 public class Program
 {
+    // Reference sentence to be used for encoding
+    private static readonly string referenceSentence = "The quick and brown fox jumps over the Lazy Dog".ToLower();
+    
     public static string EncodeString(string inputString)
     {
         if (inputString == null)
@@ -21,7 +24,6 @@ public class Program
         // Split the input into words based on space
         string[] words = inputString.Split(' ');
 
-        Dictionary<char, string> charToCodeMap = new Dictionary<char, string>();
         List<string> encodedChars = new List<string>();
 
         // Iterate through each word and encode the characters
@@ -33,16 +35,23 @@ public class Program
             {
                 char currentChar = word[charIndex];
 
-                // Only encode the first occurrence of each character
-                if (!charToCodeMap.ContainsKey(currentChar))
-                {
-                    // Generate the code by combining wordIndex and charIndex
-                    string code = (wordIndex + 1).ToString("00") + (charIndex + 1).ToString("00");
-                    charToCodeMap[currentChar] = code;
-                }
+                // Find the position of the current character in the referenceSentence
+                string[] refWords = referenceSentence.Split(' ');
 
-                // Add the code to the list
-                encodedChars.Add(charToCodeMap[currentChar]);
+                bool found = false;
+                for (int refWordIndex = 0; refWordIndex < refWords.Length && !found; refWordIndex++)
+                {
+                    string refWord = refWords[refWordIndex];
+
+                    int refCharIndex = refWord.IndexOf(currentChar);
+                    if (refCharIndex != -1)
+                    {
+                        // Generate the code by combining refWordIndex and refCharIndex
+                        string code = (refWordIndex + 1).ToString("00") + (refCharIndex + 1).ToString("00");
+                        encodedChars.Add(code);
+                        found = true;
+                    }
+                }
             }
 
             // Replace space with hyphen between words
