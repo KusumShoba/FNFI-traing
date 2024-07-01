@@ -1,95 +1,86 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+
+public class EmptyStringException : Exception
+{
+    public EmptyStringException(string message) : base(message) { }
+}
+
+public class NullReferenceException : Exception
+{
+    public NullReferenceException(string message) : base(message) { }
+}
+
+public class WordSeparator
+{
+    public static (List<string> unique, List<string> duplicates) FindUniqueAndDuplicates(string input)
+    {
+        if (input == null)
+        {
+            throw new NullReferenceException("Input string is null.");
+        }
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            throw new EmptyStringException("Input string is empty.");
+        }
+
+        var words = input.ToLower().Split(new[] { ' ', ',', '.' }, StringSplitOptions.RemoveEmptyEntries);
+        var wordCount = new Dictionary<string, int>();
+
+        foreach (var word in words)
+        {
+            if (wordCount.ContainsKey(word))
+            {
+                wordCount[word]++;
+            }
+            else
+            {
+                wordCount[word] = 1;
+            }
+        }
+
+        var unique = wordCount.Where(kv => kv.Value == 1).Select(kv => kv.Key).ToList();
+        var duplicates = wordCount.Where(kv => kv.Value > 1).Select(kv => kv.Key).ToList();
+
+        return (unique, duplicates);
+    }
+}
 
 public class Program
 {
-    // Reference sentence to be used for encoding
-    private static readonly string referenceSentence = "The quick and brown fox jumps over the Lazy Dog".ToLower();
-    
-    public static string EncodeString(string inputString)
+    public static void Main()
     {
-        if (inputString == null)
+        var testCases = new List<string>
         {
-            throw new NullReferenceException("Input string cannot be null.");
-        }
-
-        if (inputString == string.Empty)
-        {
-            throw new ArgumentException("Input string cannot be empty.");
-        }
-
-        // Convert input string to lowercase to make it case-insensitive
-        inputString = inputString.ToLower();
-
-        // Split the input into words based on space
-        string[] words = inputString.Split(' ');
-
-        List<string> encodedChars = new List<string>();
-
-        // Iterate through each word and encode the characters
-        for (int wordIndex = 0; wordIndex < words.Length; wordIndex++)
-        {
-            string word = words[wordIndex];
-
-            for (int charIndex = 0; charIndex < word.Length; charIndex++)
-            {
-                char currentChar = word[charIndex];
-
-                // Find the position of the current character in the referenceSentence
-                string[] refWords = referenceSentence.Split(' ');
-
-                bool found = false;
-                for (int refWordIndex = 0; refWordIndex < refWords.Length && !found; refWordIndex++)
-                {
-                    string refWord = refWords[refWordIndex];
-
-                    int refCharIndex = refWord.IndexOf(currentChar);
-                    if (refCharIndex != -1)
-                    {
-                        // Generate the code by combining refWordIndex and refCharIndex
-                        string code = (refWordIndex + 1).ToString("00") + (refCharIndex + 1).ToString("00");
-                        encodedChars.Add(code);
-                        found = true;
-                    }
-                }
-            }
-
-            // Replace space with hyphen between words
-            if (wordIndex < words.Length - 1)
-            {
-                encodedChars.Add("-");
-            }
-        }
-
-        // Join the encoded characters with comma
-        string encodedString = string.Join(",", encodedChars);
-
-        return encodedString;
-    }
-
-    public static void Main(string[] args)
-    {
-        string[] testInputs = {
-            "bangalore",
-            "mindtree",
-            "TTG",
-            "Global Village",
-            "West campus",
-            "",
-            null
+            "Do not call me, let me call you",
+            "I had coffee at a coffee shop yesterday during coffee break",
+            null,
+            ""
         };
 
-        foreach (string input in testInputs)
+        foreach (var testCase in testCases)
         {
             try
             {
-                string encodedOutput = EncodeString(input);
-                Console.WriteLine($"Input: {input}\nOutput: {encodedOutput}\n");
+                var (unique, duplicates) = WordSeparator.FindUniqueAndDuplicates(testCase);
+                Console.WriteLine($"Unique: {string.Join(", ", unique)}");
+                Console.WriteLine($"Duplicate: {string.Join(", ", duplicates)}");
+            }
+            catch (EmptyStringException ex)
+            {
+                Console.WriteLine($"EmptyStringException: {ex.Message}");
+            }
+            catch (NullReferenceException ex)
+            {
+                Console.WriteLine($"NullReferenceException: {ex.Message}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Input: {input}\nException: {ex.GetType().Name}\n");
+                Console.WriteLine($"Exception: {ex.Message}");
             }
+
+            Console.WriteLine();
         }
     }
 }
