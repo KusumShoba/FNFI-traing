@@ -14,7 +14,7 @@ public class NullReferenceException : Exception
 
 public class WordSeparator
 {
-    public static (List<string> unique, List<string> duplicates) FindUniqueAndDuplicates(string input)
+    public static void FindUniqueAndDuplicates(string input, out List<string> unique, out List<string> duplicates)
     {
         if (input == null)
         {
@@ -40,10 +40,8 @@ public class WordSeparator
             }
         }
 
-        var unique = wordCount.Where(kv => kv.Value == 1).Select(kv => kv.Key).ToList();
-        var duplicates = wordCount.Where(kv => kv.Value > 1).Select(kv => kv.Key).ToList();
-
-        return (unique, duplicates);
+        unique = wordCount.Where(kv => kv.Value == 1).Select(kv => kv.Key).ToList();
+        duplicates = wordCount.Where(kv => kv.Value > 1).Select(kv => kv.Key).ToList();
     }
 }
 
@@ -63,7 +61,7 @@ public class Program
         {
             try
             {
-                var (unique, duplicates) = WordSeparator.FindUniqueAndDuplicates(testCase);
+                WordSeparator.FindUniqueAndDuplicates(testCase, out List<string> unique, out List<string> duplicates);
                 Console.WriteLine($"Unique: {string.Join(", ", unique)}");
                 Console.WriteLine($"Duplicate: {string.Join(", ", duplicates)}");
             }
