@@ -1,88 +1,37 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
-public class Program
+class AssigmentQuestion{
+
+static void GetUniqueAndDuplicateWords(string input)
 {
-    public class EmptyStringArgumentException : Exception
+    var words = input.Split(' ');
+    var uniqueWords = new HashSet<string>(words);
+    var duplicateWords = new List<string>();
+
+    foreach (var word in words)
     {
-        public EmptyStringArgumentException(string message) : base(message)
+        if (uniqueWords.Contains(word))
         {
+            uniqueWords.Remove(word);
+        }
+        else
+        {
+            duplicateWords.Add(word);
         }
     }
 
-    public static (List<string>, List<string>) GetUniqueAndDuplicateWords(string input)
-    {
-        if (input == null)
-        {
-            throw new NullReferenceException("Null string argument provided.");
-        }
+    // Console.WriteLine($"Unique: {string.Join(", ", uniqueWords)}");
+    // Console.WriteLine($"Duplicate: {string.Join(", ", duplicateWords)}");
+    var StringJoin=string.Join(", ", uniqueWords);
+    var DuplicateString=string.Join(", ", duplicateWords);
+    Console.WriteLine("Unique :"+string.Join(", ", uniqueWords));
+    Console.WriteLine("Duplicate:"+DuplicateString);
+}
 
-        if (input.Trim() == "")
-        {
-            throw new EmptyStringArgumentException("Empty string argument provided.");
-        }
+static void Main(string[] args)
+{
+    GetUniqueAndDuplicateWords("Kusum is good");
+}
 
-        // Split input string into words
-        string[] words = input.Split(new char[] { ' ', ',', '.', ';', ':', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
-
-        // Using a dictionary to count occurrences of each word
-        Dictionary<string, int> wordCount = new Dictionary<string, int>();
-
-        foreach (string word in words)
-        {
-            if (wordCount.ContainsKey(word))
-            {
-                wordCount[word]++;
-            }
-            else
-            {
-                wordCount[word] = 1;
-            }
-        }
-
-        // Separate unique and duplicate words based on count
-        List<string> uniqueWords = new List<string>();
-        List<string> duplicateWords = new List<string>();
-
-        foreach (var pair in wordCount)
-        {
-            if (pair.Value == 1)
-            {
-                uniqueWords.Add(pair.Key);
-            }
-            else
-            {
-                for (int i = 0; i < pair.Value; i++)
-                {
-                    duplicateWords.Add(pair.Key);
-                }
-            }
-        }
-
-        // Sorting the lists (optional, for clarity)
-        uniqueWords.Sort();
-        duplicateWords.Sort();
-
-        return (uniqueWords, duplicateWords);
-    }
-
-    public static void Main(string[] args)
-    {
-        try
-        {
-            string input = "hello world hello";
-            var result = GetUniqueAndDuplicateWords(input);
-            Console.WriteLine("Unique words: " + string.Join(", ", result.Item1));
-            Console.WriteLine("Duplicate words: " + string.Join(", ", result.Item2));
-        }
-        catch (NullReferenceException e)
-        {
-            Console.WriteLine("Error: " + e.Message);
-        }
-        catch (EmptyStringArgumentException e)
-        {
-            Console.WriteLine("Error: " + e.Message);
-        }
-    }
 }
