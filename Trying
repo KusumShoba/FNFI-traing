@@ -1,37 +1,95 @@
 using System;
 using System.Collections.Generic;
 
-class AssigmentQuestion{
-
-static void GetUniqueAndDuplicateWords(string input)
+class AssignmentQuestion
 {
-    var words = input.Split(' ');
-    var uniqueWords = new HashSet<string>(words);
-    var duplicateWords = new List<string>();
-
-    foreach (var word in words)
+    public class EmptyStringException : Exception
     {
-        if (uniqueWords.Contains(word))
-        {
-            uniqueWords.Remove(word);
-        }
-        else
-        {
-            duplicateWords.Add(word);
-        }
+        public EmptyStringException(string message) : base(message) { }
     }
 
-    // Console.WriteLine($"Unique: {string.Join(", ", uniqueWords)}");
-    // Console.WriteLine($"Duplicate: {string.Join(", ", duplicateWords)}");
-    var StringJoin=string.Join(", ", uniqueWords);
-    var DuplicateString=string.Join(", ", duplicateWords);
-    Console.WriteLine("Unique :"+string.Join(", ", uniqueWords));
-    Console.WriteLine("Duplicate:"+DuplicateString);
-}
+    public class NullReferenceException : Exception
+    {
+        public NullReferenceException(string message) : base(message) { }
+    }
 
-static void Main(string[] args)
-{
-    GetUniqueAndDuplicateWords("Kusum is good");
-}
+    static void GetUniqueAndDuplicateWords(string input)
+    {
+        if (input == null)
+        {
+            throw new NullReferenceException("Input string is null.");
+        }
 
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            throw new EmptyStringException("Input string is empty.");
+        }
+
+        var words = input.Split(new[] { ' ', ',', '.' }, StringSplitOptions.RemoveEmptyEntries);
+        var wordCount = new Dictionary<string, int>();
+
+        foreach (var word in words)
+        {
+            var lowerWord = word.ToLower();
+            if (wordCount.ContainsKey(lowerWord))
+            {
+                wordCount[lowerWord]++;
+            }
+            else
+            {
+                wordCount[lowerWord] = 1;
+            }
+        }
+
+        var uniqueWords = new List<string>();
+        var duplicateWords = new List<string>();
+
+        foreach (var kv in wordCount)
+        {
+            if (kv.Value == 1)
+            {
+                uniqueWords.Add(kv.Key);
+            }
+            else
+            {
+                duplicateWords.Add(kv.Key);
+            }
+        }
+
+        Console.WriteLine("Unique: " + string.Join(", ", uniqueWords));
+        Console.WriteLine("Duplicate: " + string.Join(", ", duplicateWords));
+    }
+
+    static void Main(string[] args)
+    {
+        var testCases = new List<string>
+        {
+            "Do not call me, let me call you",
+            "I had coffee at a coffee shop yesterday during coffee break",
+            null,
+            ""
+        };
+
+        foreach (var testCase in testCases)
+        {
+            try
+            {
+                GetUniqueAndDuplicateWords(testCase);
+            }
+            catch (EmptyStringException ex)
+            {
+                Console.WriteLine($"EmptyStringException: {ex.Message}");
+            }
+            catch (NullReferenceException ex)
+            {
+                Console.WriteLine($"NullReferenceException: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception: {ex.Message}");
+            }
+
+            Console.WriteLine();
+        }
+    }
 }
