@@ -2,33 +2,34 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-public class EmptyStringException : Exception
+public class Program
 {
-    public EmptyStringException(string message) : base(message) { }
-}
+    public class EmptyStringArgumentException : Exception
+    {
+        public EmptyStringArgumentException(string message) : base(message)
+        {
+        }
+    }
 
-public class NullReferenceException : Exception
-{
-    public NullReferenceException(string message) : base(message) { }
-}
-
-public class WordSeparator
-{
-    public static void FindUniqueAndDuplicates(string input, out List<string> unique, out List<string> duplicates)
+    public static (List<string>, List<string>) GetUniqueAndDuplicateWords(string input)
     {
         if (input == null)
         {
-            throw new NullReferenceException("Input string is null.");
+            throw new NullReferenceException("Null string argument provided.");
         }
-        if (string.IsNullOrWhiteSpace(input))
+
+        if (input.Trim() == "")
         {
-            throw new EmptyStringException("Input string is empty.");
+            throw new EmptyStringArgumentException("Empty string argument provided.");
         }
 
-        var words = input.ToLower().Split(new[] { ' ', ',', '.' }, StringSplitOptions.RemoveEmptyEntries);
-        var wordCount = new Dictionary<string, int>();
+        // Split input string into words
+        string[] words = input.Split(new char[] { ' ', ',', '.', ';', ':', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
 
-        foreach (var word in words)
+        // Using a dictionary to count occurrences of each word
+        Dictionary<string, int> wordCount = new Dictionary<string, int>();
+
+        foreach (string word in words)
         {
             if (wordCount.ContainsKey(word))
             {
@@ -40,45 +41,48 @@ public class WordSeparator
             }
         }
 
-        unique = wordCount.Where(kv => kv.Value == 1).Select(kv => kv.Key).ToList();
-        duplicates = wordCount.Where(kv => kv.Value > 1).Select(kv => kv.Key).ToList();
+        // Separate unique and duplicate words based on count
+        List<string> uniqueWords = new List<string>();
+        List<string> duplicateWords = new List<string>();
+
+        foreach (var pair in wordCount)
+        {
+            if (pair.Value == 1)
+            {
+                uniqueWords.Add(pair.Key);
+            }
+            else
+            {
+                for (int i = 0; i < pair.Value; i++)
+                {
+                    duplicateWords.Add(pair.Key);
+                }
+            }
+        }
+
+        // Sorting the lists (optional, for clarity)
+        uniqueWords.Sort();
+        duplicateWords.Sort();
+
+        return (uniqueWords, duplicateWords);
     }
-}
 
-public class Program
-{
-    public static void Main()
+    public static void Main(string[] args)
     {
-        var testCases = new List<string>
+        try
         {
-            "Do not call me, let me call you",
-            "I had coffee at a coffee shop yesterday during coffee break",
-            null,
-            ""
-        };
-
-        foreach (var testCase in testCases)
+            string input = "hello world hello";
+            var result = GetUniqueAndDuplicateWords(input);
+            Console.WriteLine("Unique words: " + string.Join(", ", result.Item1));
+            Console.WriteLine("Duplicate words: " + string.Join(", ", result.Item2));
+        }
+        catch (NullReferenceException e)
         {
-            try
-            {
-                WordSeparator.FindUniqueAndDuplicates(testCase, out List<string> unique, out List<string> duplicates);
-                Console.WriteLine($"Unique: {string.Join(", ", unique)}");
-                Console.WriteLine($"Duplicate: {string.Join(", ", duplicates)}");
-            }
-            catch (EmptyStringException ex)
-            {
-                Console.WriteLine($"EmptyStringException: {ex.Message}");
-            }
-            catch (NullReferenceException ex)
-            {
-                Console.WriteLine($"NullReferenceException: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Exception: {ex.Message}");
-            }
-
-            Console.WriteLine();
+            Console.WriteLine("Error: " + e.Message);
+        }
+        catch (EmptyStringArgumentException e)
+        {
+            Console.WriteLine("Error: " + e.Message);
         }
     }
 }
