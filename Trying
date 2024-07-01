@@ -9,7 +9,7 @@ public class Program
         {
             throw new NullReferenceException("Input string cannot be null.");
         }
-        
+
         if (inputString == string.Empty)
         {
             throw new ArgumentException("Input string cannot be empty.");
@@ -19,7 +19,7 @@ public class Program
         inputString = inputString.ToLower();
 
         // Split the input into words based on space
-        string[] words = inputString.Split();
+        string[] words = inputString.Split(' ');
 
         Dictionary<char, string> charToCodeMap = new Dictionary<char, string>();
         List<string> encodedChars = new List<string>();
@@ -60,15 +60,27 @@ public class Program
 
     public static void Main(string[] args)
     {
-        try
+        string[] testInputs = {
+            "bangalore",
+            "mindtree",
+            "TTG",
+            "Global Village",
+            "West campus",
+            "",
+            null
+        };
+
+        foreach (string input in testInputs)
         {
-            string inputText = "The quick and brown fox jumps over the Lazy Dog";
-            string encodedOutput = EncodeString(inputText);
-            Console.WriteLine(encodedOutput);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
+            try
+            {
+                string encodedOutput = EncodeString(input);
+                Console.WriteLine($"Input: {input}\nOutput: {encodedOutput}\n");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Input: {input}\nException: {ex.GetType().Name}\n");
+            }
         }
     }
 }
