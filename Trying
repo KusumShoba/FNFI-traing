@@ -1,19 +1,47 @@
-Librarian has a list of books and their authors as a text. You need to write a program to assist him. Write a method that prints the output as the book titles are sorted based on the alphabetical order of their author names and book titles. 
-The Function signature:
-List<String> SortTitles (List<String>) {} 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-Assumptions & Limitations: 
-1. A title will not contain the double quote (") character. 
-2. If a book contains more than one author, consider only the first author name for sorting. 
-3. If two books have same first author, use the book title for sorting. 
-4. Book titles are unique. 
-Sample Input (List containing the following three entries) 	Sample Output (List containing the following three entries) 
-"The Canterbury Tales" by Chaucer 
-"Algorithms" by Sedgewick 
-"The C Programming Language" by Kernighan and Ritchie 	The Canterbury Tales 
-The C Programming Language 
-Algorithms 
+public class Program
+{
+    public static List<string> SortTitles(List<string> titles)
+    {
+        // Helper function to extract the first author and the title from the input string
+        (string firstAuthor, string title) ExtractAuthorAndTitle(string entry)
+        {
+            string[] parts = entry.Split(new string[] { "\" by " }, StringSplitOptions.None);
+            string title = parts[0].Trim('"', ' ');
+            string firstAuthor = parts[1].Split(new string[] { " and " }, StringSplitOptions.None)[0];
+            return (firstAuthor, title);
+        }
 
+        // Create a list of tuples containing (first_author, title)
+        var extracted = titles.Select(entry => ExtractAuthorAndTitle(entry)).ToList();
 
+        // Sort the list of tuples first by author and then by title
+        var sortedExtracted = extracted.OrderBy(x => x.firstAuthor).ThenBy(x => x.title).ToList();
 
+        // Extract the sorted titles
+        var sortedTitles = sortedExtracted.Select(x => x.title).ToList();
 
+        return sortedTitles;
+    }
+
+    public static void Main()
+    {
+        // Sample Input
+        List<string> titles = new List<string>
+        {
+            "\"The Canterbury Tales\" by Chaucer",
+            "\"Algorithms\" by Sedgewick",
+            "\"The C Programming Language\" by Kernighan and Ritchie"
+        };
+
+        // Function call and output
+        List<string> sortedTitles = SortTitles(titles);
+        foreach (string title in sortedTitles)
+        {
+            Console.WriteLine(title);
+        }
+    }
+}
