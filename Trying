@@ -1,42 +1,19 @@
-using System;
-using System.Collections.Generic;
+Librarian has a list of books and their authors as a text. You need to write a program to assist him. Write a method that prints the output as the book titles are sorted based on the alphabetical order of their author names and book titles. 
+The Function signature:
+List<String> SortTitles (List<String>) {} 
 
-class WordFrequencyCounter
-{
-    public static Dictionary<string, int> CountWords(string text)
-    {
-        var wordCounts = new Dictionary<string, int>();
-        foreach (var word in text.Split(' '))
-        {
-            if (!char.IsLetter(word[0])) continue; // Skip non-alphabet characters at the start
-            var normalizedWord = word.ToLower();
-            if (wordCounts.ContainsKey(normalizedWord))
-                wordCounts[normalizedWord]++;
-            else
-                wordCounts[normalizedWord] = 1;
-        }
-        return wordCounts;
-    }
-
-    public static void PrintSortedFrequencies(Dictionary<string, int> wordCounts)
-    {
-        var sortedWords = new List<KeyValuePair<string, int>>();
-        foreach (var entry in wordCounts)
-        {
-            sortedWords.Add(new KeyValuePair<string, int>(entry.Key, entry.Value));
-        }
-        sortedWords.Sort((a, b) => b.Value.CompareTo(a.Value)); // Descending order by frequency
-        sortedWords.Sort((a, b) => string.Compare(b.Key, a.Key, StringComparison.Ordinal)); // Reverse alphabetical order
-
-        foreach (var pair in sortedWords)
-        {
-            Console.WriteLine($"{pair.Value} {pair.Key}");
-        }
-    }
-}
+Assumptions & Limitations: 
+1. A title will not contain the double quote (") character. 
+2. If a book contains more than one author, consider only the first author name for sorting. 
+3. If two books have same first author, use the book title for sorting. 
+4. Book titles are unique. 
+Sample Input (List containing the following three entries) 	Sample Output (List containing the following three entries) 
+"The Canterbury Tales" by Chaucer 
+"Algorithms" by Sedgewick 
+"The C Programming Language" by Kernighan and Ritchie 	The Canterbury Tales 
+The C Programming Language 
+Algorithms 
 
 
-string sampleText = "Hello World. This is a nice World.";
-        var wordCounts = WordFrequencyCounter.CountWords(sampleText);
-        WordFrequencyCounter.PrintSortedFrequencies(wordCounts);
+
 
