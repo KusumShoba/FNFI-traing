@@ -35,3 +35,8 @@ class WordFrequencyCounter
     }
 }
 
+
+string sampleText = "Hello World. This is a nice World.";
+        var wordCounts = WordFrequencyCounter.CountWords(sampleText);
+        WordFrequencyCounter.PrintSortedFrequencies(wordCounts);
+
