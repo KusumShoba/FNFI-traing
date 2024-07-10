@@ -1,95 +1,37 @@
 using System;
 using System.Collections.Generic;
 
-class AssignmentQuestion
+class WordFrequencyCounter
 {
-    public class EmptyStringException : Exception
+    public static Dictionary<string, int> CountWords(string text)
     {
-        public EmptyStringException(string message) : base(message) { }
-    }
-
-    public class NullReferenceException : Exception
-    {
-        public NullReferenceException(string message) : base(message) { }
-    }
-
-    static void GetUniqueAndDuplicateWords(string input)
-    {
-        if (input == null)
+        var wordCounts = new Dictionary<string, int>();
+        foreach (var word in text.Split(' '))
         {
-            throw new NullReferenceException("Input string is null.");
-        }
-
-        if (string.IsNullOrWhiteSpace(input))
-        {
-            throw new EmptyStringException("Input string is empty.");
-        }
-
-        var words = input.Split(new[] { ' ', ',', '.' }, StringSplitOptions.RemoveEmptyEntries);
-        var wordCount = new Dictionary<string, int>();
-
-        foreach (var word in words)
-        {
-            var lowerWord = word.ToLower();
-            if (wordCount.ContainsKey(lowerWord))
-            {
-                wordCount[lowerWord]++;
-            }
+            if (!char.IsLetter(word[0])) continue; // Skip non-alphabet characters at the start
+            var normalizedWord = word.ToLower();
+            if (wordCounts.ContainsKey(normalizedWord))
+                wordCounts[normalizedWord]++;
             else
-            {
-                wordCount[lowerWord] = 1;
-            }
+                wordCounts[normalizedWord] = 1;
         }
-
-        var uniqueWords = new List<string>();
-        var duplicateWords = new List<string>();
-
-        foreach (var kv in wordCount)
-        {
-            if (kv.Value == 1)
-            {
-                uniqueWords.Add(kv.Key);
-            }
-            else
-            {
-                duplicateWords.Add(kv.Key);
-            }
-        }
-
-        Console.WriteLine("Unique: " + string.Join(", ", uniqueWords));
-        Console.WriteLine("Duplicate: " + string.Join(", ", duplicateWords));
+        return wordCounts;
     }
 
-    static void Main(string[] args)
+    public static void PrintSortedFrequencies(Dictionary<string, int> wordCounts)
     {
-        var testCases = new List<string>
+        var sortedWords = new List<KeyValuePair<string, int>>();
+        foreach (var entry in wordCounts)
         {
-            "Do not call me, let me call you",
-            "I had coffee at a coffee shop yesterday during coffee break",
-            null,
-            ""
-        };
+            sortedWords.Add(new KeyValuePair<string, int>(entry.Key, entry.Value));
+        }
+        sortedWords.Sort((a, b) => b.Value.CompareTo(a.Value)); // Descending order by frequency
+        sortedWords.Sort((a, b) => string.Compare(b.Key, a.Key, StringComparison.Ordinal)); // Reverse alphabetical order
 
-        foreach (var testCase in testCases)
+        foreach (var pair in sortedWords)
         {
-            try
-            {
-                GetUniqueAndDuplicateWords(testCase);
-            }
-            catch (EmptyStringException ex)
-            {
-                Console.WriteLine($"EmptyStringException: {ex.Message}");
-            }
-            catch (NullReferenceException ex)
-            {
-                Console.WriteLine($"NullReferenceException: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Exception: {ex.Message}");
-            }
-
-            Console.WriteLine();
+            Console.WriteLine($"{pair.Value} {pair.Key}");
         }
     }
 }
+
