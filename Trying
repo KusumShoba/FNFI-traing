@@ -6,11 +6,11 @@ public class Program
 {
     class StringComparer : IComparer<string>
     {
-        public string Compare(string word1compareTo,string word1compareWith)
+        public int Compare(string word1compareTo, string word1compareWith)
         {
-            var firstWord=word1compareTo.Split("by",StringSplitOptions.TrimEntries);
-            var secondWord=word1compareWith.Split("by",StringSplitOptions.TrimEntries);
-            if(firstWord[1].CompareTo(secondWord[1])==0)
+            var firstWord = word1compareTo.Split("by", StringSplitOptions.TrimEntries);
+            var secondWord = word1compareWith.Split("by", StringSplitOptions.TrimEntries);
+            if (firstWord[1].CompareTo(secondWord[1]) == 0)
             {
                 return firstWord[0].CompareTo(secondWord[0]);
             }
@@ -18,29 +18,23 @@ public class Program
             {
                 return firstWord[1].CompareTo(secondWord[1]);
             }
-
         }
     }
-  
- public static void Main()
-    // {
 
-        // // Function call and output
-        // List<string> sortedTitles = SortTitles(titles);
-        // foreach (string title in sortedTitles)
-        // {
-        //     Console.WriteLine(title);
-        // }
-
-        var list=new List<string>
+    public static void Main()
+    {
+        var list = new List<string>
         {
-             "The Canterbury Tales by Chaucer", //Using the escape sequence for multiple ""
+            "The Canterbury Tales by Chaucer",
             "Algorithms by Sedgewick",
             "The C Programming Language by Kernighan and Ritchie"
-        }
+        };
 
+        list.Sort(new StringComparer());
+
+        foreach (var title in list)
+        {
+            Console.WriteLine(title);
+        }
     }
 }
-
-
-Use iComparer and complete this code
