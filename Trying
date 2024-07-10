@@ -1,46 +1,74 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
-class WordFrequencyCounter
+public class Program
 {
-    public static Dictionary<string, int> CountWords(string text)
+    class StringComparer : IComparer<string>
     {
-        var wordCounts = new Dictionary<string, int>();
-        foreach (var word in text.Split(' '))
+        public string Compare(string word1compareTo,string word1compareWith)
         {
-            // if (!char.IsLetter(word[0]))
-            //      continue; // Skip non-alphabet characters at the start
-            var normalizedWord = word.ToLower();
-            if (wordCounts.ContainsKey(normalizedWord))
-                wordCounts[normalizedWord]++;
+            var firstWord=word1compareTo.Split("by",StringSplitOptions.TrimEntries);
+            var secondWord=word1compareWith.Split("by",StringSplitOptions.TrimEntries);
+            if(firstWord[1].CompareTo(secondWord[1])==0)
+            {
+                return firstWord[0].CompareTo(secondWord[0]);
+            }
             else
-                wordCounts[normalizedWord] = 1;
+            {
+                return firstWord[1].CompareTo(secondWord[1]);
+            }
+
         }
-        return wordCounts;
+    }
+    // Helper function to extract the first author and the title from the input string
+    public static KeyValuePair<string, string> ExtractAuthorAndTitle(string entry)
+    {
+        string[] parts = entry.Split(new string[] { "\" by " }, StringSplitOptions.None);
+        string title = parts[0].Trim('"', ' ');
+        string firstAuthor = parts[1].Split(new string[] { " and " }, StringSplitOptions.None)[0];
+        return new KeyValuePair<string, string>(firstAuthor, title);
     }
 
-    public static void PrintSortedFrequencies(Dictionary<string, int> wordCounts)
+    public static List<string> SortTitles(List<string> titles)
     {
-        var sortedWords = new List<KeyValuePair<string, int>>();
-        foreach (var entry in wordCounts)
-        {
-            sortedWords.Add(new KeyValuePair<string, int>(entry.Key, entry.Value));
-        }
-        sortedWords.Sort((a, b) => b.Value.CompareTo(a.Value)); // Descending order by frequency
-        sortedWords.Sort((a, b) => string.Compare(b.Key, a.Key, StringComparison.Ordinal)); // Reverse alphabetical order
+        // Create a list of KeyValuePair containing (first_author, title)
+        var extracted = titles.Select(entry => ExtractAuthorAndTitle(entry)).ToList();
 
-        foreach (var pair in sortedWords)
-        {
-            Console.WriteLine(""+pair.Value + " "+pair.Key);
-        }
+        // Sort the list of KeyValuePair first by author and then by title
+        var sortedExtracted = extracted.OrderBy(x => x.Key).ThenBy(x => x.Value).ToList();
+
+        // Extract the sorted titles
+        var sortedTitles = sortedExtracted.Select(x => x.Value).ToList();
+
+        return sortedTitles;
     }
-}
-class Program
-{
-    static void Main()
+
+    public static void Main()
     {
-        string sampleText = "Hello World. This is a nice World.";
-        var wordCounts = WordFrequencyCounter.CountWords(sampleText);
-        WordFrequencyCounter.PrintSortedFrequencies(wordCounts);
+        List<string> titles = new List<string>
+        {
+            "\"The Canterbury Tales\" by Chaucer", //Using the escape sequence for multiple ""
+            "\"Algorithms\" by Sedgewick",
+            "\"The C Programming Language\" by Kernighan and Ritchie"
+        };
+
+        // Function call and output
+        List<string> sortedTitles = SortTitles(titles);
+        foreach (string title in sortedTitles)
+        {
+            Console.WriteLine(title);
+        }
+
+        var list=new List<string>
+        {
+             "The Canterbury Tales by Chaucer", //Using the escape sequence for multiple ""
+            "Algorithms by Sedgewick",
+            "The C Programming Language by Kernighan and Ritchie"
+        }
+        
     }
 }
+
+
+Use iComparer and complete this code
