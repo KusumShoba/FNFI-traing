@@ -1,4 +1,3 @@
-add-migration mig3
-Build started...
-Build succeeded.
-More than one DbContext was found. Specify which one to use. Use the '-Context' parameter for PowerShell commands and the '--context' parameter for dotnet commands.
+new Product { PId = 1, PName = "Product 1", PPrice = 100, PImg = "img1.jpg" },
+            new Product { PId = 2, PName = "Product 2", PPrice = 200, PImg = "img2.jpg" },
+            new Product { PId = 3, PName = "Product 3", PPri
