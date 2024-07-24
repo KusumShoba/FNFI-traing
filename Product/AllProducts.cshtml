@@ -1,0 +1,30 @@
+﻿@model List<SampleMvcApp.Models.Product>
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>AllProducts</title>
+</head>
+<body>
+    <div>
+        @foreach (var prod in Model)
+        {
+
+            <p>@prod.PId</p>
+            <p>@prod.PName</p>
+
+            <p>@prod.Price</p>
+            <p>
+                <img src="@prod.PImg" style="width :100px; height:150px" />
+            </p>
+
+
+        }
+    </div>
+</body>
+</html>
