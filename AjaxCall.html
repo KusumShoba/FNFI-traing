@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajax call using jquery</title>
+    <link rel="stylesheet" href="./bootstrap-5.0.2-dist/css/bootstrap.min.css">
+    <script src="./jquery-3.7.1.min.js"></script>
+    <script>
+        function showRecords()
+        {
+            alert("showRecords");
+        }
+
+        function findRecords()
+        {
+            alert("findRecords");
+        }
+        function addRecords()
+        {
+            alert("addRecords");
+        }
+        function deleteRecords()
+        {
+            alert("deleteRecords");
+        }
+
+        function init()
+        {
+            $("#btnShow").click(showRecords);
+            $("#btnFind").click(findRecords);
+            $("#btnAdd").click(addRecords);
+            $("#btnDelete").click(deleteRecords);
+
+        }
+        $(document).ready(init);
+    </script>
+
+</head>
+<body>
+    <nav class="navbar bg-light">
+        <button id="btnShow" class="btn btn-info m-4">Show Records</button>
+        <button id="btnFind" class="btn btn-primary m-4">Find Records</button>
+        <button id="btnAdd" class="btn btn-secondary m-4">Add Records</button>
+        <button id="btnDelete" class="btn btn-warning m-4">Delete Records</button>
+
+    </nav>
+    <h1>Purpose of this app</h1>
+    <hr>
+    <div>
+        <p>This app will call the APIs of the MVC Controller and work with the data</p>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-9">
+
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>

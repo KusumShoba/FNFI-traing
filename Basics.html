@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        //alert("Testing =>predefined")
+    //     let input= parseInt(prompt("Enter the age"));
+    //     if(isNaN(input))
+    // {
+    //     console.log("Not a valid age");
+    // }
+    // else{
+    //     let age = parseInt(input)
+    //     console.log("Age after 15 years is"+(age+15));
+    // }
+
+
+    // const arr = [];
+    // arr.push(100);
+    // arr.push(200);
+    // arr.push(300);
+    // arr.push(400);
+    // arr.unshift(555);
+    // //arr.splice(2,1);
+    // console.log(arr);
+
+
+    // console.log("1");
+    // for(let i=0;i<arr.length ; i++)//Specic num of times
+    // {
+    //     console.log(arr[i]);
+    // }
+
+
+    // console.log("2");
+
+    // for (const item of arr) {//Collection
+    //     console.log(item);
+    // }
+
+
+    // console.log("3");
+
+    // for (const key in arr) {//Objects of a class
+    //     console.log(`Index:${key} Value:${arr[key]}`)
+    // }
+
+
+    class Customer
+    {
+        constructor(id,name,address)
+        {
+            this.CustomerId=id;
+            this.CustomerName=name;
+            this.CustomerAddress=address
+        }
+    }  
+
+    const cst= new Customer(123, "Ku", "Ba");
+    console.log(cst);
+
+    for (const member in cst)
+    {
+        console.log(`PropertyName:${member} ===> Value:${cst[member]}`)
+        
+    }
+    </script>
+</body>
+</html>

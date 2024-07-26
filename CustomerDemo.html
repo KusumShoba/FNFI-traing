@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+   
+    <script src="./Customer.js"></script>
+    <script src="./jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="./bootstrap-5.0.2-dist/css/bootstrap.min.css">
+ 
+    </script>
+    <script>
+        //3 ways: element, id, class
+        const repo = new CustomerRepo();
+ 
+        function populate(cust)
+        {
+            $("#txtId").val(cust.CustomerId)
+            $("#txtName").val(cust.CustomerName)
+            $("#txtAddress").val(cust.CustomerAddress)
+        }
+       
+ 
+        function onEdit(id)
+        {
+            const found = repo.findCustomer(id)
+               
+                populate(found);
+                $("section").hide();
+                $("section:eq(1)").show();
+           
+           
+        }
+       
+       
+        function createRow(customer){
+            const row =`<tr>
+                <td>${customer.CustomerId}</td>
+                <td>${customer.CustomerName}</td>
+                <td>${customer.CustomerAddress}</td>
+                <td><a class='btn btn-primary' onclick="onEdit(${customer.CustomerId})">Edit</a></td>
+                <td><a class='btn btn-danger' onclick="onDelete(${customer.CustomerId})">Delete</a></td>
+            `;
+            return row;
+        }
+        function fillData(data){
+           $("table tbody tr").remove();
+            $.each(data, (index, element)=>{
+                let row = createRow(element);
+                $("table tbody").append(row)
+            })
+        }
+        function populateCustomers(){
+            const data = repo.getAll();
+            fillData(data);
+        }
+
+        function onDelete(id)
+        {
+            const response = confirm(`Do you really want to delete the record at ${id} ?`);
+            if(response)
+                repo.deleteCustomer(id);
+            $("section").hide();
+        }
+        function onUpdate()
+        {
+            const id= $("#txtId").val();
+            const name = $("#txtName").val();
+            const address = $("#txtAddress").val();
+            const cust = new Customer(id, name, address);
+            const attr = $("#txtId").attr("disabled");
+            debugger;
+            console.log(attr);
+            if(attr == "disabled")
+                repo.updateCustomer(cust);
+            else
+                repo.addCustomer(cust);
+            $("#txtId").attr("disabled", true);
+ 
+            $("section").hide();
+           
+        }
+        $(document).ready(function(){
+           $("section").fadeOut(2000);
+           $(".navbar-nav > a:first").click(function(){
+           $("section").fadeOut(2000);
+            $("section:eq(0)").fadeIn(2000);
+            populateCustomers();
+           })
+ 
+           $(".navbar-nav > a:eq(1)").click(function(){
+           $("section").fadeOut(2000);
+            $("section:eq(1)").fadeIn(2000);
+            $("txtId").attr("disabled",false)
+           })
+ 
+           $(".navbar-nav > a:eq(2)").click(function(){
+            alert("Fnf- All Rights Reserved");
+           $("section").fadeOut(2000);
+            $("section:eq(1)").fadeIn(2000);
+           })
+ 
+           $("button:eq(1)").click(onUpdate);
+           
+        });
+    </script>
+</head>
+<body>
+        <nav class="navbar navbar-expand-sm navbar-light bg-primary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">Main Menu</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarID"
+                    aria-controls="navbarID" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarID">
+                    <div class="navbar-nav">
+                        <a class="nav-link active " aria-current="page" href="#">All Customers</a>
+                        <a class="nav-link" aria-current="page" href="#">Add Customer</a>
+                        <a class="nav-link" aria-current="page" href="#">About Us</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        <div class="container-fluid">
+            <div class="row">
+               <div class="col-md-7">
+                <section>
+                    <h2>List of Customers with Us!!!</h2>
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Customer ID</th>
+                                <th>Customer Name</th>
+                                <th>Customer Address</th>
+                                <th>Options</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+ 
+                        </tbody>
+                    </table>
+                </section>            
+               </div>
+               <div class="col-md-5">
+                   <section>
+                        <h2>Register New Customer</h2>
+                        <p>
+                            <input placeholder="CustomerId" disabled class="form-control"  id="txtId"/>
+                        </p>
+                        <p>
+                            <input placeholder="Customer Name" class="form-control" id="txtName"/>
+                        </p>
+                        <p>
+                            <input placeholder="Customer Address" class="form-control" id="txtAddress"/>
+                        </p>
+                        <p>
+                             <button class="btn btn-info">Save Changes</button>  
+                             <button class="btn btn-danger" onclick="onUpdate">Cancel Changes</button>  
+                        </p>
+                    </section>
+               </div>
+            </div>
+        </div>
+</body>
+</html>
