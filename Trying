@@ -1,78 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-
-namespace ExpenseManager.Models
-{
-    public class ExpenseDbContext : DbContext
-    {
-        public ExpenseDbContext(DbContextOptions<ExpenseDbContext> options) : base(options) { }
-
-        public DbSet<Expense> Expenses { get; set; }
-    }
-}
-
-
-
-
-
-
-
-using Microsoft.AspNetCore.Mvc;
-using ExpenseManager.Models;
-using System.Linq;
-
-namespace ExpenseManager.Controllers
-{
-    public class ExpenseController : Controller
-    {
-        private readonly ExpenseDbContext _context;
-
-        public ExpenseController(ExpenseDbContext context)
-        {
-            _context = context;
-        }
-
-        [HttpGet]
-        public JsonResult GetAllExpenses()
-        {
-            var expenses = _context.Expenses.ToList();
-            return Json(expenses);
-        }
-
-        [HttpGet]
-        public JsonResult FindByDate(DateTime date)
-        {
-            var expenses = _context.Expenses.Where(e => e.Date.Date == date.Date).ToList();
-            return Json(expenses);
-        }
-
-        [HttpGet]
-        public JsonResult FindByDescription(string description)
-        {
-            var expenses = _context.Expenses.Where(e => e.Description.Contains(description)).ToList();
-            return Json(expenses);
-        }
-
-        [HttpGet]
-        public JsonResult FindByMonth(int month)
-        {
-            var expenses = _context.Expenses.Where(e => e.Date.Month == month).ToList();
-            return Json(expenses);
-        }
-
-        [HttpPost]
-        public IActionResult AddExpense([FromBody] Expense expense)
-        {
-            _context.Expenses.Add(expense);
-            _context.SaveChanges();
-            return Ok("Expense added successfully");
-        }
-    }
-}
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -195,3 +120,115 @@ namespace ExpenseManager.Controllers
     </div>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+using Microsoft.AspNetCore.Mvc;
+using ExpenseAssignment.Models;
+
+namespace ExpenseAssignment.Controllers
+{
+    public class ExpenseController : Controller
+    {
+        private readonly ExpenseDbContext _context;
+
+        public ExpenseController(ExpenseDbContext context)
+        {
+            _context = context;
+        }
+
+        [HttpGet]
+        public JsonResult GetAllExpenses()
+        {
+            var expenses = _context.Expenses.ToList();
+            return Json(expenses);
+        }
+
+        [HttpGet]
+        public JsonResult FindByDate(DateTime date)
+        {
+            var expenses = _context.Expenses.Where(e => e.Date.Date == date.Date).ToList();
+            return Json(expenses);
+        }
+
+        [HttpGet]
+        public JsonResult FindByDescription(string description)
+        {
+            var expenses = _context.Expenses.Where(e => e.EDescription.Contains(description)).ToList();
+            return Json(expenses);
+        }
+
+        [HttpGet]
+        public JsonResult FindByMonth(int month)
+        {
+            var expenses = _context.Expenses.Where(e => e.Date.Month == month).ToList();
+            return Json(expenses);
+        }
+
+        [HttpPost]
+        public IActionResult AddExpense([FromBody] Expense expense)
+        {
+            _context.Expenses.Add(expense);
+            _context.SaveChanges();
+            return Ok("Expense added successfully");
+        }
+    }
+}
+
+
+
+
+
+
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ExpenseAssignment.Models
+{
+    [Table("Expense")]
+    public class Expense
+    {
+        [Key]
+        public int EId { get; set; }
+
+        public DateTime Date { get; set; }
+
+        public string EDescription { get; set; } = string.Empty;
+
+        public decimal Amount { get; set; }
+
+
+
+    }
+
+    public class ExpenseDbContext : DbContext
+    {
+        public ExpenseDbContext(DbContextOptions<ExpenseDbContext> options) : base(options) { }
+
+        public DbSet<Expense> Expenses { get; set; }
+    }
+}
+
+
+
+
+
+
+Make add and Search feature work only show feature is working
