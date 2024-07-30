@@ -11,7 +11,7 @@
 
         function createRow(expense) {
             return `<tr>
-                        <td>${expense.description}</td>
+                        <td>${expense.eDescription}</td>
                         <td>${expense.amount}</td>
                         <td>${new Date(expense.date).toLocaleDateString()}</td>
                     </tr>`;
@@ -46,7 +46,7 @@
 
         function addRecord() {
             const expense = {
-                description: $("#txtDescription").val(),
+                eDescription: $("#txtDescription").val(),
                 amount: parseFloat($("#txtAmount").val()),
                 date: $("#txtDate").val()
             };
@@ -124,23 +124,9 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 using Microsoft.AspNetCore.Mvc;
 using ExpenseAssignment.Models;
+using System.Linq;
 
 namespace ExpenseAssignment.Controllers
 {
@@ -184,51 +170,13 @@ namespace ExpenseAssignment.Controllers
         [HttpPost]
         public IActionResult AddExpense([FromBody] Expense expense)
         {
-            _context.Expenses.Add(expense);
-            _context.SaveChanges();
-            return Ok("Expense added successfully");
+            if (ModelState.IsValid)
+            {
+                _context.Expenses.Add(expense);
+                _context.SaveChanges();
+                return Ok("Expense added successfully");
+            }
+            return BadRequest("Invalid data");
         }
     }
 }
-
-
-
-
-
-
-using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace ExpenseAssignment.Models
-{
-    [Table("Expense")]
-    public class Expense
-    {
-        [Key]
-        public int EId { get; set; }
-
-        public DateTime Date { get; set; }
-
-        public string EDescription { get; set; } = string.Empty;
-
-        public decimal Amount { get; set; }
-
-
-
-    }
-
-    public class ExpenseDbContext : DbContext
-    {
-        public ExpenseDbContext(DbContextOptions<ExpenseDbContext> options) : base(options) { }
-
-        public DbSet<Expense> Expenses { get; set; }
-    }
-}
-
-
-
-
-
-
-Make add and Search feature work only show feature is working
