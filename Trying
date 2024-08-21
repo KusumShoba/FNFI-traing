@@ -1,74 +1,125 @@
-//Data Source=FNFIDVPRE20524;Initial Catalog=FnfProject;Integrated Security=True;Trust Server Certificate=True
+@page "/register"
 
+<h3 class="page-title">Create a New Account</h3>
 
-using InsuranceProject.Data;
-using InsuranceProject.DTOs;
+<div class="form-container">
+    <EditForm Model="registerModel" OnValidSubmit="HandleRegister">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
 
-namespace InsuranceProject.Services
-{
-    public interface IInsuranceTypesService
+        <div class="form-group">
+            <label for="Name">Name</label>
+            <InputText id="Name" class="form-control" @bind-Value="registerModel.Name" />
+            <ValidationMessage For="@(() => registerModel.Name)" />
+        </div>
+
+        <div class="form-group">
+            <label for="Phone">Phone Number</label>
+            <InputText id="Phone" class="form-control" @bind-Value="registerModel.Phone" />
+            <ValidationMessage For="@(() => registerModel.Phone)" />
+        </div>
+
+        <div class="form-group">
+            <label for="Address">Address</label>
+            <InputText id="Address" class="form-control" @bind-Value="registerModel.Address" />
+            <ValidationMessage For="@(() => registerModel.Address)" />
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <InputText id="email" class="form-control" @bind-Value="registerModel.Email" />
+            <ValidationMessage For="@(() => registerModel.Email)" />
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <InputText id="password" type="password" class="form-control" @bind-Value="registerModel.Password" />
+            <ValidationMessage For="@(() => registerModel.Password)" />
+        </div>
+
+        <div class="form-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <InputText id="confirmPassword" type="password" class="form-control" @bind-Value="registerModel.ConfirmPassword" />
+            <ValidationMessage For="@(() => registerModel.ConfirmPassword)" />
+        </div>
+
+        <div class="form-group">
+            <label for="dob">Date of Birth</label>
+            <InputDate id="dob" class="form-control" @bind-Value="registerModel.DOB" />
+            <ValidationMessage For="@(() => registerModel.DOB)" />
+        </div>
+
+        <div class="form-group">
+            <label for="gender">Gender</label>
+            <InputSelect id="gender" class="form-control" @bind-Value="registerModel.Gender">
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </InputSelect>
+            <ValidationMessage For="@(() => registerModel.Gender)" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Register</button>
+    </EditForm>
+
+    <p class="text-center">
+        Already have an account? <a href="/login">Login here</a>
+    </p>
+</div>
+
+@code {
+    private RegisterModel registerModel = new RegisterModel();
+
+    private void HandleRegister()
     {
-        Task Add(InsuranceTypesDto insuranceType);
-        Task Delete(int id);
-        Task<List<InsuranceTypesDto>> GetAll();
-        Task<InsuranceTypesDto> GetById(int id);
-        Task Update(InsuranceTypesDto insuranceType);
+        if (ValidateAge(registerModel.DOB))
+        {
+            // Proceed with registration logic
+        }
+        else
+        {
+            // Show an error message if age is not 18+
+            // This could be a popup, inline message, etc.
+        }
     }
-    public class InsuranceTypesService : IInsuranceTypesService
+
+    private bool ValidateAge(DateOnly dob)
     {
-        private readonly FnfProjectContext context;
-        public InsuranceTypesService(FnfProjectContext context)
-        {
-            this.context = context;
-        }
-
-
-        public async Task Add(InsuranceTypesDto insuranceType)
-        {
-            InsuranceType insuranceTypeTable = new InsuranceType();
-            insuranceTypeTable.InsuranceTypesName = InsuranceType.Name;
-            
-            context.Admins.Add(insuranceTypeTable);
-            await context.SaveChangesAsync();
-            return;
-        }
-
-        public Task Delete(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<List<InsuranceTypesDto>> GetAll()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<InsuranceTypesDto> GetById(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task Update(InsuranceTypesDto admin)
-        {
-            throw new NotImplementedException();
-        }
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var age = today.Year - dob.Year;
+        if (dob > today.AddYears(-age)) age--;
+        return age >= 18;
     }
-    
-    
-    
-    
-  namespace InsuranceProject.DTOs
-{
-    public class InsuranceTypesDto
+
+    private class RegisterModel
     {
-        public int InsuranceTypesId { get; set; }
+        [Required(ErrorMessage = "Name is required")]
+        public string Name { get; set; }
 
-        public string InsuranceTypesName { get; set; } = null!;
+        [Required(ErrorMessage = "Phone number is required")]
+        [RegularExpression(@"^\d{10}$", ErrorMessage = "Invalid phone number. Please enter a 10-digit number.")]
+        public string Phone { get; set; }
 
+        [Required(ErrorMessage = "Address is required")]
+        public string Address { get; set; }
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "Password is required")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters long")]
+        public string Password { get; set; }
+
+        [Required(ErrorMessage = "Confirm Password is required")]
+        [Compare("Password", ErrorMessage = "Passwords do not match")]
+        public string ConfirmPassword { get; set; }
+
+        [Required(ErrorMessage = "Date of Birth is required")]
+        public DateOnly DOB { get; set; }
+
+        [Required(ErrorMessage = "Gender is required")]
+        public string Gender { get; set; }
     }
-}
-  
-    
-    
-    
 }
