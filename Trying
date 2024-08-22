@@ -1,20 +1,230 @@
- public async Task GetAll_ReturnsOkResult_WithListOfAdmins()
- {
-     // Arrange
-     var admins = new List<AdminDto>
-     {
-         new AdminDto { AdminId = 1, Name = "Admin1" },
-         new AdminDto { AdminId = 2, Name = "Admin2" }
-     };
-     _mockService.Setup(service => service.GetAll()).ReturnsAsync(admins);
+Admin.dto
 
-     // Act
-     var result = await _controller.GetAll();
+namespace InsuranceApi.DTOs
+{
+    public class AdminDto
+    {
+        public int AdminId { get; set; }
 
-     // Assert
-     var okResult = result as OkObjectResult;
-     Assert.AreEqual(typeof(OkObjectResult), result.GetType());
-     var returnValue = result as List<AdminDto>;
-     Assert.AreEqual(typeof(List<AdminDto>), okResult.Value);
-     Assert.AreEqual(2, returnValue.Count);
- }
+        public string Name { get; set; } = null!;
+
+        public string PasswordHash { get; set; } = null!;
+    }
+}
+
+
+AdminContoller.cs
+
+using InsuranceApi.Data;
+using InsuranceApi.DTOs;
+using InsuranceApi.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace InsuranceApi.Controllers
+{
+    public interface IAdminController
+    {
+        Task<IActionResult> Add(AdminDto admin);
+        Task<IActionResult> Delete(int id);
+        Task<IActionResult> GetAll();
+        Task<IActionResult> GetById(int id);
+        Task<IActionResult> Update(AdminDto admin);
+    }
+
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AdminController : ControllerBase, IAdminController
+    {
+        private readonly IAdminService service;
+        public AdminController(IAdminService service)
+        {
+            this.service = service;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            List<AdminDto> admins = await service.GetAll();
+            return Ok(admins);
+        }
+
+        [HttpDelete]
+        [Route("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                await service.Delete(id);
+                return Ok();
+            }
+            catch (NullReferenceException)
+            {
+                return NotFound();
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Add(AdminDto admin)
+        {
+                await service.Add(admin);
+                return Ok();
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Update(AdminDto admin)
+        {
+            try
+            {
+                await service.Update(admin);
+                return Ok();
+            }
+            catch (NullReferenceException)
+            {
+                return NotFound();
+            }
+        }
+
+        [HttpGet]
+        [Route("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            try
+            {
+                var found = await service.GetById(id);
+                return Ok(found);
+            }
+            catch (NullReferenceException)
+            {
+                return NotFound();
+            }
+        }
+    }
+}
+
+
+
+Admin Data
+using System;
+using System.Collections.Generic;
+
+namespace InsuranceApi.Data;
+
+public partial class Admin
+{
+    public int AdminId { get; set; }
+
+    public string Name { get; set; } = null!;
+
+    public string PasswordHash { get; set; } = null!;
+
+    public virtual ICollection<Blacklist> Blacklists { get; set; } = new List<Blacklist>();
+
+    public virtual ICollection<InsuredPolicy> InsuredPolicies { get; set; } = new List<InsuredPolicy>();
+}
+
+
+AdminServices.cs
+using InsuranceApi.Data;
+using InsuranceApi.DTOs;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace InsuranceApi.Services
+{
+    public interface IAdminService
+    {
+        Task Add(AdminDto adminDto);
+        Task Delete(int id);
+        Task<List<AdminDto>> GetAll();
+        Task<AdminDto> GetById(int id);
+        Task Update(AdminDto adminDto);
+    }
+
+    public class AdminService : IAdminService
+    {
+        private readonly FnfProjectContext context;
+        public AdminService(FnfProjectContext context)
+        {
+            this.context = context;
+        }
+
+        public async Task<List<AdminDto>> GetAll()
+        {
+            List<AdminDto> adminDtos = new List<AdminDto>();
+            await foreach (var adminTable in context.Admins)
+            {
+                AdminDto adminDto = ConvertToDto(adminTable);
+                adminDtos.Add(adminDto);
+            }
+            return adminDtos;
+        }
+
+        public async Task Delete(int id)
+        {
+            var found = await context.Admins.FirstOrDefaultAsync((adminTable) => adminTable.AdminId == id);
+            if (found != null)
+            {
+                context.Admins.Remove(found);
+                await context.SaveChangesAsync();
+                return;
+            }
+            throw new NullReferenceException();
+        }
+
+        public async Task Add(AdminDto adminDto)
+        {
+            Admin adminTable = new Admin();
+            ConvertToTable(adminDto, adminTable);
+            context.Admins.Add(adminTable);
+            await context.SaveChangesAsync();
+            return;
+        }
+
+        public async Task Update(AdminDto adminDto)
+        {
+            var found = await context.Admins.FirstOrDefaultAsync((adminTable) =>
+                adminTable.AdminId == adminDto.AdminId);
+            if (found != null)
+            {
+                ConvertToTable(adminDto, found);
+                await context.SaveChangesAsync();
+                return;
+            }
+            throw new NullReferenceException();
+        }
+
+        public async Task<AdminDto> GetById(int id)
+        {
+            var found = await context.Admins.FirstOrDefaultAsync((adminTable) => adminTable.AdminId == id);
+            if (found != null)
+            {
+                var adminDto = ConvertToDto(found);
+                return adminDto;
+            }
+            throw new NullReferenceException();
+        }
+
+        private AdminDto ConvertToDto(Admin adminTable)
+        {
+            AdminDto adminDto = new()
+            {
+                AdminId = adminTable.AdminId,
+                Name = adminTable.Name,
+                PasswordHash = adminTable.PasswordHash,
+            };
+            return adminDto;
+        }
+
+        private void ConvertToTable(AdminDto adminDto, Admin adminTable)
+        {
+            adminTable.AdminId = adminDto.AdminId;
+            adminTable.Name = adminDto.Name;
+            adminTable.PasswordHash = adminDto.PasswordHash;
+            return;
+        }
+    }
+}
+
