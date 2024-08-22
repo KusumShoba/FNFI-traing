@@ -1,143 +1,111 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using InsuranceApi.Controllers;
+DTO/DLL.cs
+namespace InsuranceApi.DTOs
+{
+    public class ClaimDto
+    {
+        public int ClaimId { get; set; }
+        public int InsuredPolicyId { get; set; }
+        public int PolicyHolderId { get; set; }
+        public DateTime ClaimDate { get; set; }
+        public decimal ClaimAmount { get; set; }
+        public string ClaimStatus { get; set; } = null!;
+        public decimal? DispenseAmount { get; set; }
+        public string DocumentType { get; set; } = null!;
+        public string DocumentPath { get; set; } = null!;
+        public int HospitalId { get; set; }
+    }
+}
+
+
+ClaimController.cs
+using InsuranceApi.Data;
 using InsuranceApi.DTOs;
 using InsuranceApi.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Moq;
-using Xunit;
+using Microsoft.EntityFrameworkCore;
 
-namespace InsuranceApi.Tests
+namespace InsuranceApi.Controllers
 {
-    public class AdminControllerTests
+    public interface IClaimController
     {
-        private readonly AdminController _controller;
-        private readonly Mock<IAdminService> _mockService;
+        Task<IActionResult> Add(ClaimDto claimDto);
+        Task<IActionResult> Delete(int id);
+        Task<IActionResult> GetAll();
+        Task<IActionResult> GetById(int id);
+        Task<IActionResult> Update(ClaimDto claimDto);
+    }
 
-
-
-        public AdminControllerTests()
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ClaimController : ControllerBase, IClaimController
+    {
+        private readonly IClaimService service;
+        public ClaimController(IClaimService service)
         {
-            _mockService = new Mock<IAdminService>();
-            _controller = new AdminController(_mockService.Object);
+            this.service = service;
         }
 
-        [Fact]
-        public async Task GetAll_ReturnsOkResult_WithListOfAdmins()
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
-            // Arrange
-            var admins = new List<AdminDto>
+            List<ClaimDto> claims = await service.GetAll();
+            return Ok(claims);
+        }
+
+        [HttpDelete]
+        [Route("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
             {
-                new AdminDto { AdminId = 1, Name = "Admin1" },
-                new AdminDto { AdminId = 2, Name = "Admin2" }
-            };
-            _mockService.Setup(service => service.GetAll()).ReturnsAsync(admins);
-
-            // Act
-            var result = await _controller.GetAll();
-
-            // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            var returnValue = Assert.IsType<AdminDto>(okResult.Value);
-            Assert.AreEqual(2, returnValue.Count);
+                await service.Delete(id);
+                return Ok();
+            }
+            catch (NullReferenceException)
+            {
+                return NotFound();
+            }
         }
 
-        [Fact]
-        public async Task GetById_ReturnsOkResult_WithAdmin()
+        [HttpPost]
+        public async Task<IActionResult> Add(ClaimDto claim)
         {
-            // Arrange
-            var admin = new AdminDto { AdminId = 1, Name = "Admin1" };
-            _mockService.Setup(service => service.GetById(1)).ReturnsAsync(admin);
-
-            // Act
-            var result = await _controller.GetById(1);
-
-            // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            var returnValue = Assert.IsType<AdminDto>(okResult.Value);
-            Assert.AreEqual("Admin1", returnValue.Name);
+            await service.Add(claim);
+            return Ok();
         }
 
-        [Fact]
-        public async Task GetById_ReturnsNotFound_WhenAdminDoesNotExist()
+        [HttpPut]
+        public async Task<IActionResult> Update(ClaimDto claim)
         {
-            // Arrange
-            _mockService.Setup(service => service.GetById(1)).ThrowsAsync(new NullReferenceException());
-
-            // Act
-            var result = await _controller.GetById(1);
-
-            // Assert
-            Assert.IsType<NotFoundResult>(result);
+            try
+            {
+                await service.Update(claim);
+                return Ok();
+            }
+            catch (NullReferenceException)
+            {
+                return NotFound();
+            }
         }
 
-        [Fact]
-        public async Task Add_ReturnsOk()
+        [HttpGet]
+        [Route("{id}")]
+        public async Task<IActionResult> GetById(int id)
         {
-            // Arrange
-            var newAdmin = new AdminDto { AdminId = 3, Name = "Admin3" };
-            _mockService.Setup(service => service.Add(newAdmin)).Returns(Task.CompletedTask);
-
-            // Act
-            var result = await _controller.Add(newAdmin);
-
-            // Assert
-            Assert.IsType<OkResult>(result);
-        }
-
-        [Fact]
-        public async Task Update_ReturnsOk()
-        {
-            // Arrange
-            var updatedAdmin = new AdminDto { AdminId = 1, Name = "UpdatedAdmin" };
-            _mockService.Setup(service => service.Update(updatedAdmin)).Returns(Task.CompletedTask);
-
-            // Act
-            var result = await _controller.Update(updatedAdmin);
-
-            // Assert
-            Assert.IsType<OkResult>(result);
-        }
-
-        [Fact]
-        public async Task Update_ReturnsNotFound_WhenAdminDoesNotExist()
-        {
-            // Arrange
-            var updatedAdmin = new AdminDto { AdminId = 1, Name = "UpdatedAdmin" };
-            _mockService.Setup(service => service.Update(updatedAdmin)).ThrowsAsync(new NullReferenceException());
-
-            // Act
-            var result = await _controller.Update(updatedAdmin);
-
-            // Assert
-            Assert.IsType<NotFoundResult>(result);
-        }
-
-        [Fact]
-        public async Task Delete_ReturnsOk()
-        {
-            // Arrange
-            _mockService.Setup(service => service.Delete(1)).Returns(Task.CompletedTask);
-
-            // Act
-            var result = await _controller.Delete(1);
-
-            // Assert
-            Assert.IsType<OkResult>(result);
-        }
-
-        [Fact]
-        public async Task Delete_ReturnsNotFound_WhenAdminDoesNotExist()
-        {
-            // Arrange
-            _mockService.Setup(service => service.Delete(1)).ThrowsAsync(new NullReferenceException());
-
-            // Act
-            var result = await _controller.Delete(1);
-
-            // Assert
-            Assert.IsType<NotFoundResult>(result);
+            try
+            {
+                var found = await service.GetById(id);
+                return Ok(found);
+            }
+            catch (NullReferenceException)
+            {
+                return NotFound();
+            }
         }
     }
 }
+
+
+
+Create the test unit for this
