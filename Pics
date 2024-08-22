@@ -1,16 +1,16 @@
 namespace InsuranceApi.DTOs
 {
-    public class PolicyDto
+    public class PolicyHolderDto
     {
-        public int PolicyId { get; set; }
-        public string PolicyNumber { get; set; } = null!;
-        public int InsuranceTypeId { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
-        public decimal PremiumAmount { get; set; }
+        public int PolicyHolderId { get; set; }
+        public string Name { get; set; } = null!;
+        public string PasswordHash { get; set; } = null!;
+        public string Address { get; set; } = null!;
+        public string Phone { get; set; } = null!;
+        public string Email { get; set; } = null!;
+        public int Status { get; set; }
     }
 }
-
 
 
 using InsuranceApi.DTOs;
@@ -20,21 +20,21 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InsuranceApi.Controllers
 {
-    public interface IPolicyController
+    public interface IPolicyHolderController
     {
-        Task<IActionResult> Add(PolicyDto policyDto);
+        Task<IActionResult> Add(PolicyHolderDto policyHolderDto);
         Task<IActionResult> Delete(int id);
         Task<IActionResult> GetAll();
         Task<IActionResult> GetById(int id);
-        Task<IActionResult> Update(PolicyDto policyDto);
+        Task<IActionResult> Update(PolicyHolderDto policyHolderDto);
     }
 
     [Route("api/[controller]")]
     [ApiController]
-    public class PolicyContoller : ControllerBase, IPolicyController
+    public class PolicyHolderContoller : ControllerBase, IPolicyHolderController
     {
-        private readonly IPolicyService service;
-        public PolicyContoller(IPolicyService service)
+        private readonly IPolicyHolderService service;
+        public PolicyHolderContoller(IPolicyHolderService service)
         {
             this.service = service;
         }
@@ -42,8 +42,8 @@ namespace InsuranceApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            List<PolicyDto> policyDtos = await service.GetAll();
-            return Ok(policyDtos);
+            List<PolicyHolderDto> policyHolderDtos = await service.GetAll();
+            return Ok(policyHolderDtos);
         }
 
         [HttpDelete]
@@ -62,18 +62,18 @@ namespace InsuranceApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add(PolicyDto policyDto)
+        public async Task<IActionResult> Add(PolicyHolderDto policyHolderDto)
         {
-            await service.Add(policyDto);
+            await service.Add(policyHolderDto);
             return Ok();
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update(PolicyDto policyDto)
+        public async Task<IActionResult> Update(PolicyHolderDto policyHolderDto)
         {
             try
             {
-                await service.Update(policyDto);
+                await service.Update(policyHolderDto);
                 return Ok();
             }
             catch (NullReferenceException)
