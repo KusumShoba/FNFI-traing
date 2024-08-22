@@ -1,47 +1,25 @@
-DTO/DLL.cs
-namespace InsuranceApi.DTOs
-{
-    public class ClaimDto
-    {
-        public int ClaimId { get; set; }
-        public int InsuredPolicyId { get; set; }
-        public int PolicyHolderId { get; set; }
-        public DateTime ClaimDate { get; set; }
-        public decimal ClaimAmount { get; set; }
-        public string ClaimStatus { get; set; } = null!;
-        public decimal? DispenseAmount { get; set; }
-        public string DocumentType { get; set; } = null!;
-        public string DocumentPath { get; set; } = null!;
-        public int HospitalId { get; set; }
-    }
-}
-
-
-ClaimController.cs
-using InsuranceApi.Data;
 using InsuranceApi.DTOs;
 using InsuranceApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace InsuranceApi.Controllers
 {
-    public interface IClaimController
+    public interface IInsuranceTypeController
     {
-        Task<IActionResult> Add(ClaimDto claimDto);
+        Task<IActionResult> Add(InsuranceTypeDto insuranceTypeDto);
         Task<IActionResult> Delete(int id);
         Task<IActionResult> GetAll();
         Task<IActionResult> GetById(int id);
-        Task<IActionResult> Update(ClaimDto claimDto);
+        Task<IActionResult> Update(InsuranceTypeDto insuranceTypeDto);
     }
 
     [Route("api/[controller]")]
     [ApiController]
-    public class ClaimController : ControllerBase, IClaimController
+    public class InsuranceTypeContoller : ControllerBase, IInsuranceTypeController
     {
-        private readonly IClaimService service;
-        public ClaimController(IClaimService service)
+        private readonly IInsuranceTypeService service;
+        public InsuranceTypeContoller(IInsuranceTypeService service)
         {
             this.service = service;
         }
@@ -49,8 +27,8 @@ namespace InsuranceApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            List<ClaimDto> claims = await service.GetAll();
-            return Ok(claims);
+            List<InsuranceTypeDto> insuranceTypeDtos = await service.GetAll();
+            return Ok(insuranceTypeDtos);
         }
 
         [HttpDelete]
@@ -69,18 +47,18 @@ namespace InsuranceApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add(ClaimDto claim)
+        public async Task<IActionResult> Add(InsuranceTypeDto insuranceTypeDto)
         {
-            await service.Add(claim);
+            await service.Add(insuranceTypeDto);
             return Ok();
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update(ClaimDto claim)
+        public async Task<IActionResult> Update(InsuranceTypeDto insuranceTypeDto)
         {
             try
             {
-                await service.Update(claim);
+                await service.Update(insuranceTypeDto);
                 return Ok();
             }
             catch (NullReferenceException)
@@ -106,6 +84,12 @@ namespace InsuranceApi.Controllers
     }
 }
 
-
-
-Create the test unit for this
+namespace InsuranceApi.DTOs
+{
+    public class InsuranceTypeDto
+    {
+        public int InsuranceId { get; set; }
+        public string InsuranceType { get; set; } = null!;
+        public string Description { get; set; } = null!;
+    }
+}
