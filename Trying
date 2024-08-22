@@ -1,87 +1,149 @@
-using InsuranceApi.Data;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using InsuranceApi.Controllers;
 using InsuranceApi.DTOs;
 using InsuranceApi.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Moq;
+using Xunit;
 
-namespace InsuranceApi.Controllers
+namespace InsuranceApi.Tests
 {
-    public interface IAdminController
+    public class AdminControllerTests
     {
-        Task<IActionResult> Add(AdminDto admin);
-        Task<IActionResult> Delete(int id);
-        Task<IActionResult> GetAll();
-        Task<IActionResult> GetById(int id);
-        Task<IActionResult> Update(AdminDto admin);
-    }
+        private readonly AdminController _controller;
+        private readonly Mock<IAdminService> _mockService;
 
-    [Route("api/[controller]")]
-    [ApiController]
-    public class AdminController : ControllerBase, IAdminController
-    {
-        private readonly IAdminService service;
-        public AdminController(IAdminService service)
+        public AdminControllerTests()
         {
-            this.service = service;
+            _mockService = new Mock<IAdminService>();
+            _controller = new AdminController(_mockService.Object);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
+        [Fact]
+        public async Task GetAll_ReturnsOkResult_WithListOfAdmins()
         {
-            List<AdminDto> admins = await service.GetAll();
-            return Ok(admins);
+            // Arrange
+            var admins = new List<AdminDto> { new AdminDto { AdminId = 1, Name = "Admin1" }, new AdminDto { AdminId = 2, Name = "Admin2" } };
+            _mockService.Setup(service => service.GetAll()).ReturnsAsync(admins);
+
+            // Act
+            var result = await _controller.GetAll();
+
+            // Assert
+            var okResult = Xunit.Assert.IsType<Microsoft.AspNetCore.Mvc.OkObjectResult>(result);
+            var returnValue = Xunit.Assert.IsType<List<AdminDto>>(okResult.Value);
+            Assert.Equal(2, returnValue.Count);
         }
 
-        [HttpDelete]
-        [Route("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        [Fact]
+        public async Task GetById_ReturnsOkResult_WithAdmin()
         {
-            try
-            {
-                await service.Delete(id);
-                return Ok();
-            }
-            catch (NullReferenceException)
-            {
-                return NotFound();
-            }
+            // Arrange
+            var admin = new AdminDto { AdminId = 1, Name = "Admin1" };
+            _mockService.Setup(service => service.GetById(1)).ReturnsAsync(admin);
+
+            // Act
+            var result = await _controller.GetById(1);
+
+            // Assert
+            var okResult = Xunit.Assert.IsType<Microsoft.AspNetCore.Mvc.OkObjectResult>(result);
+            var returnValue = Xunit.Assert.IsType<AdminDto>(okResult.Value);
+            Assert.Equal("Admin1", returnValue.Name);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Add(AdminDto admin)
+        [Fact]
+        public async Task GetById_ReturnsNotFound_WhenAdminDoesNotExist()
         {
-                await service.Add(admin);
-                return Ok();
+            // Arrange
+            _mockService.Setup(service => service.GetById(1)).ThrowsAsync(new NullReferenceException());
+
+            // Act
+            var result = await _controller.GetById(1);
+
+            // Assert
+            Xunit.Assert.IsType<Microsoft.AspNetCore.Mvc.NotFoundResult>(result);
         }
 
-        [HttpPut]
-        public async Task<IActionResult> Update(AdminDto admin)
+        [Fact]
+        public async Task Add_ReturnsOk()
         {
-            try
-            {
-                await service.Update(admin);
-                return Ok();
-            }
-            catch (NullReferenceException)
-            {
-                return NotFound();
-            }
+            // Arrange
+            var newAdmin = new AdminDto { AdminId = 3, Name = "Admin3" };
+            _mockService.Setup(service => service.Add(newAdmin)).Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.Add(newAdmin);
+
+            // Assert
+            Xunit.Assert.IsType<Microsoft.AspNetCore.Mvc.OkResult>(result);
         }
 
-        [HttpGet]
-        [Route("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        [Fact]
+        public async Task Update_ReturnsOk()
         {
-            try
-            {
-                var found = await service.GetById(id);
-                return Ok(found);
-            }
-            catch (NullReferenceException)
-            {
-                return NotFound();
-            }
+            // Arrange
+            var updatedAdmin = new AdminDto { AdminId = 1, Name = "UpdatedAdmin" };
+            _mockService.Setup(service => service.Update(updatedAdmin)).Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.Update(updatedAdmin);
+
+            // Assert
+            Xunit.Assert.IsType<Microsoft.AspNetCore.Mvc.OkResult>(result);
+        }
+
+        [Fact]
+        public async Task Update_ReturnsNotFound_WhenAdminDoesNotExist()
+        {
+            // Arrange
+            var updatedAdmin = new AdminDto { AdminId = 1, Name = "UpdatedAdmin" };
+            _mockService.Setup(service => service.Update(updatedAdmin)).ThrowsAsync(new NullReferenceException());
+
+            // Act
+            var result = await _controller.Update(updatedAdmin);
+
+            // Assert
+            Xunit.Assert.IsType<Microsoft.AspNetCore.Mvc.NotFoundResult>(result);
+        }
+
+        [Fact]
+        public async Task Delete_ReturnsOk()
+        {
+            // Arrange
+            _mockService.Setup(service => service.Delete(1)).Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.Delete(1);
+
+            // Assert
+            Xunit.Assert.IsType<Microsoft.AspNetCore.Mvc.OkResult>(result);
+        }
+
+        [Fact]
+        public async Task Delete_ReturnsNotFound_WhenAdminDoesNotExist()
+        {
+            // Arrange
+            _mockService.Setup(service => service.Delete(1)).ThrowsAsync(new NullReferenceException());
+
+            // Act
+            var result = await _controller.Delete(1);
+
+            // Assert
+            Xunit.Assert.IsType<Microsoft.AspNetCore.Mvc.NotFoundResult>(result);
         }
     }
 }
+
+
+
+
+Severity	Code	Description	Project	File	Line	Suppression State	Details
+Error (active)	CS0234	The type or namespace name 'Assert' does not exist in the namespace 'Xunit' (are you missing an assembly reference?)	InsuranceApiTest	C:\Users\6147965\source\repos\InsuranceApi\InsuranceApiTest\AdminControllerTests.cs	108		
+
+Severity	Code	Description	Project	File	Line	Suppression State	Details
+Error (active)	CS0117	'Assert' does not contain a definition for 'Equal'	InsuranceApiTest	C:\Users\6147965\source\repos\InsuranceApi\InsuranceApiTest\AdminControllerTests.cs	37		
+
+
+
