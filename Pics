@@ -1,40 +1,40 @@
 namespace InsuranceApi.DTOs
 {
-    public class PolicyHolderDto
+    public class BlacklistDto
     {
+        public int BlacklistId { get; set; }
         public int PolicyHolderId { get; set; }
-        public string Name { get; set; } = null!;
-        public string PasswordHash { get; set; } = null!;
-        public string Address { get; set; } = null!;
-        public string Phone { get; set; } = null!;
-        public string Email { get; set; } = null!;
-        public int Status { get; set; }
+        public int AdminId { get; set; }
+        public DateTime BlacklistDate { get; set; }
+        public string Reason { get; set; } = null!;
     }
 }
 
 
+using InsuranceApi.Data;
 using InsuranceApi.DTOs;
 using InsuranceApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace InsuranceApi.Controllers
 {
-    public interface IPolicyHolderController
+    public interface IBlacklistController
     {
-        Task<IActionResult> Add(PolicyHolderDto policyHolderDto);
+        Task<IActionResult> Add(BlacklistDto blacklistDto);
         Task<IActionResult> Delete(int id);
         Task<IActionResult> GetAll();
         Task<IActionResult> GetById(int id);
-        Task<IActionResult> Update(PolicyHolderDto policyHolderDto);
+        Task<IActionResult> Update(BlacklistDto blacklistDto);
     }
 
     [Route("api/[controller]")]
     [ApiController]
-    public class PolicyHolderContoller : ControllerBase, IPolicyHolderController
+    public class BlacklistController : ControllerBase, IBlacklistController
     {
-        private readonly IPolicyHolderService service;
-        public PolicyHolderContoller(IPolicyHolderService service)
+        private readonly IBlacklistService service;
+        public BlacklistController(IBlacklistService service)
         {
             this.service = service;
         }
@@ -42,8 +42,8 @@ namespace InsuranceApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            List<PolicyHolderDto> policyHolderDtos = await service.GetAll();
-            return Ok(policyHolderDtos);
+            List<BlacklistDto> blacklists = await service.GetAll();
+            return Ok(blacklists);
         }
 
         [HttpDelete]
@@ -62,18 +62,18 @@ namespace InsuranceApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add(PolicyHolderDto policyHolderDto)
+        public async Task<IActionResult> Add(BlacklistDto blacklist)
         {
-            await service.Add(policyHolderDto);
+            await service.Add(blacklist);
             return Ok();
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update(PolicyHolderDto policyHolderDto)
+        public async Task<IActionResult> Update(BlacklistDto blacklist)
         {
             try
             {
-                await service.Update(policyHolderDto);
+                await service.Update(blacklist);
                 return Ok();
             }
             catch (NullReferenceException)
@@ -98,4 +98,3 @@ namespace InsuranceApi.Controllers
         }
     }
 }
-
