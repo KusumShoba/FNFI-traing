@@ -1,9 +1,1 @@
-Message: 
-  System.InvalidOperationException : The instance of entity type 'Blacklist' cannot be tracked because another instance with the same key value for {'BlacklistId'} is already being tracked. When attaching existing entities, ensure that only one entity instance with a given key value is attached. Consider using 'DbContextOptionsBuilder.EnableSensitiveDataLogging' to see the conflicting key values.
-
-
-
- Message: 
-   Microsoft.EntityFrameworkCore.DbUpdateException : An error occurred while saving the entity changes. See the inner exception for details.
-   ---- Microsoft.Data.SqlClient.SqlException : Cannot insert explicit value for identity column in table 'Blacklist' when IDENTITY_INSERT is set to OFF.
-
+The MERGE statement conflicted with the FOREIGN KEY constraint "FK__Blacklist__Admin__4E88ABD4". The conflict occurred in database "FnFProject", table "dbo.Admin", column 'AdminID'.
