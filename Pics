@@ -1,100 +1,101 @@
-namespace InsuranceApi.DTOs
-{
-    public class BlacklistDto
-    {
-        public int BlacklistId { get; set; }
-        public int PolicyHolderId { get; set; }
-        public int AdminId { get; set; }
-        public DateTime BlacklistDate { get; set; }
-        public string Reason { get; set; } = null!;
-    }
-}
-
-
 using InsuranceApi.Data;
 using InsuranceApi.DTOs;
-using InsuranceApi.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace InsuranceApi.Controllers
+namespace InsuranceApi.Services
 {
-    public interface IBlacklistController
+    public interface IAdminService
     {
-        Task<IActionResult> Add(BlacklistDto blacklistDto);
-        Task<IActionResult> Delete(int id);
-        Task<IActionResult> GetAll();
-        Task<IActionResult> GetById(int id);
-        Task<IActionResult> Update(BlacklistDto blacklistDto);
+        Task Add(AdminDto adminDto);
+        Task Delete(int id);
+        Task<List<AdminDto>> GetAll();
+        Task<AdminDto> GetById(int id);
+        Task Update(AdminDto adminDto);
     }
 
-    [Route("api/[controller]")]
-    [ApiController]
-    public class BlacklistController : ControllerBase, IBlacklistController
+    public class AdminService : IAdminService
     {
-        private readonly IBlacklistService service;
-        public BlacklistController(IBlacklistService service)
+        private readonly FnfProjectContext context;
+        public AdminService(FnfProjectContext context)
         {
-            this.service = service;
+            this.context = context;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<List<AdminDto>> GetAll()
         {
-            List<BlacklistDto> blacklists = await service.GetAll();
-            return Ok(blacklists);
+            List<AdminDto> adminDtos = new List<AdminDto>();
+            await foreach (var adminTable in context.Admins)
+            {
+                AdminDto adminDto = ConvertToDto(adminTable);
+                adminDtos.Add(adminDto);
+            }
+            return adminDtos;
         }
 
-        [HttpDelete]
-        [Route("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task Delete(int id)
         {
-            try
+            var found = await context.Admins.FirstOrDefaultAsync((adminTable) => adminTable.AdminId == id);
+            if (found != null)
             {
-                await service.Delete(id);
-                return Ok();
+                context.Admins.Remove(found);
+                await context.SaveChangesAsync();
+                return;
             }
-            catch (NullReferenceException)
-            {
-                return NotFound();
-            }
+            throw new NullReferenceException();
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Add(BlacklistDto blacklist)
+        public async Task Add(AdminDto adminDto)
         {
-            await service.Add(blacklist);
-            return Ok();
+            Admin adminTable = new Admin();
+            ConvertToTable(adminDto, adminTable);
+            context.Admins.Add(adminTable);
+            await context.SaveChangesAsync();
+            return;
         }
 
-        [HttpPut]
-        public async Task<IActionResult> Update(BlacklistDto blacklist)
+        public async Task Update(AdminDto adminDto)
         {
-            try
+            var found = await context.Admins.FirstOrDefaultAsync((adminTable) =>
+                adminTable.AdminId == adminDto.AdminId);
+            if (found != null)
             {
-                await service.Update(blacklist);
-                return Ok();
+                ConvertToTable(adminDto, found);
+                await context.SaveChangesAsync();
+                return;
             }
-            catch (NullReferenceException)
-            {
-                return NotFound();
-            }
+            throw new NullReferenceException();
         }
 
-        [HttpGet]
-        [Route("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<AdminDto> GetById(int id)
         {
-            try
+            var found = await context.Admins.FirstOrDefaultAsync((adminTable) => adminTable.AdminId == id);
+            if (found != null)
             {
-                var found = await service.GetById(id);
-                return Ok(found);
+                var adminDto = ConvertToDto(found);
+                return adminDto;
             }
-            catch (NullReferenceException)
+            throw new NullReferenceException();
+        }
+
+        private AdminDto ConvertToDto(Admin adminTable)
+        {
+            AdminDto adminDto = new()
             {
-                return NotFound();
-            }
+                AdminId = adminTable.AdminId,
+                Name = adminTable.Name,
+                PasswordHash = adminTable.PasswordHash,
+            };
+            return adminDto;
+        }
+
+        private void ConvertToTable(AdminDto adminDto, Admin adminTable)
+        {
+            adminTable.AdminId = adminDto.AdminId;
+            adminTable.Name = adminDto.Name;
+            adminTable.PasswordHash = adminDto.PasswordHash;
+            return;
         }
     }
 }
