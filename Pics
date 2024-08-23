@@ -1,158 +1,104 @@
-using InsuranceApi.DTOs;
-using InsuranceApi.Services;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-
-
-namespace InsuranceApi.Tests
-{
-    public class AdminServiceTests
-    {
-        private readonly FnfProjectContext? _context;
-        private readonly AdminService _service;
-        private readonly AdminService _adminService;
-
-
-        public AdminServiceTests()
-        {
-            // Setup the in-memory database options
-            var options = new DbContextOptionsBuilder<FnfProjectContext>()
-                    .UseInMemoryDatabase(databaseName: "TestDatabase")
-                    .Options;
-
-            // Initialize the service collection
-            var serviceProvider = new ServiceCollection()
-                .AddDbContext<FnfProjectContext>(opt => opt.UseInMemoryDatabase("TestDatabase"))
-                .AddScoped<AdminService>()
-                .BuildServiceProvider();
-
-            // Resolve the context and service from the service provider
-            _context = serviceProvider.GetService<FnfProjectContext>();
-            _adminService = serviceProvider.GetService<AdminService>();
-
-            // Optionally, you can ensure the database is created
-            _context.Database.EnsureCreated();
-        }
-
-        [Fact]
-        public async Task Add_AdminAdded_ReturnsTrue()
-        {
-            // Arrange
-            var adminDto = new AdminDto { AdminId = 1, Name = "Test User", PasswordHash = "hashedpassword" };
-
-            // Act
-            await _service.Add(adminDto);
-
-            // Assert
-            var addedAdmin = await _context.Admins.FindAsync(1);
-            Assert.NotNull(addedAdmin);
-            Assert.Equal("Test User", addedAdmin.Name);
-        }
-
-    }
-}
-
-
-
-
-Service : = AdminService
 using InsuranceApi.Data;
 using InsuranceApi.DTOs;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace InsuranceApi.Services
 {
-    public interface IAdminService
+    public interface IBlacklistService
     {
-        Task Add(AdminDto adminDto);
+        Task Add(BlacklistDto blacklistDto);
         Task Delete(int id);
-        Task<List<AdminDto>> GetAll();
-        Task<AdminDto> GetById(int id);
-        Task Update(AdminDto adminDto);
+        Task<List<BlacklistDto>> GetAll();
+        Task<BlacklistDto> GetById(int id);
+        Task Update(BlacklistDto blacklistDto);
     }
 
-    public class AdminService : IAdminService
+    public class BlacklistService : IBlacklistService
     {
         private readonly FnfProjectContext context;
-        public AdminService(FnfProjectContext context)
+
+        public BlacklistService(FnfProjectContext context)
         {
             this.context = context;
         }
 
-        public async Task<List<AdminDto>> GetAll()
+        public async Task<List<BlacklistDto>> GetAll()
         {
-            List<AdminDto> adminDtos = new List<AdminDto>();
-            await foreach (var adminTable in context.Admins)
+            List<BlacklistDto> blacklistDtos = [];
+            await foreach (var blacklistTable in context.Blacklists)
             {
-                AdminDto adminDto = ConvertToDto(adminTable);
-                adminDtos.Add(adminDto);
+                var blacklistDto = ConvertToDto(blacklistTable);
+                blacklistDtos.Add(blacklistDto);
             }
-            return adminDtos;
+            return blacklistDtos;
         }
 
         public async Task Delete(int id)
         {
-            var found = await context.Admins.FirstOrDefaultAsync((adminTable) => adminTable.AdminId == id);
+            var found = await context.Blacklists.FirstOrDefaultAsync((blacklistTable) =>
+                blacklistTable.BlacklistId == id);
             if (found != null)
             {
-                context.Admins.Remove(found);
+                context.Blacklists.Remove(found);
                 await context.SaveChangesAsync();
                 return;
             }
             throw new NullReferenceException();
         }
 
-        public async Task Add(AdminDto adminDto)
+        public async Task Add(BlacklistDto blacklistDto)
         {
-            Admin adminTable = new Admin();
-            ConvertToTable(adminDto, adminTable);
-            context.Admins.Add(adminTable);
+            Blacklist blacklistTable = new();
+            ConvertToTable(blacklistDto, blacklistTable);
+            context.Blacklists.Add(blacklistTable);
             await context.SaveChangesAsync();
             return;
         }
 
-        public async Task Update(AdminDto adminDto)
+        public async Task Update(BlacklistDto blacklistDto)
         {
-            var found = await context.Admins.FirstOrDefaultAsync((adminTable) =>
-                adminTable.AdminId == adminDto.AdminId);
+            var found = await context.Blacklists.FirstOrDefaultAsync((blacklistTable) =>
+                blacklistTable.BlacklistId == blacklistDto.BlacklistId);
             if (found != null)
             {
-                ConvertToTable(adminDto, found);
+                ConvertToTable(blacklistDto, found);
                 await context.SaveChangesAsync();
                 return;
             }
             throw new NullReferenceException();
         }
 
-        public async Task<AdminDto> GetById(int id)
+        public async Task<BlacklistDto> GetById(int id)
         {
-            var found = await context.Admins.FirstOrDefaultAsync((adminTable) => adminTable.AdminId == id);
+            var found = await context.Blacklists.FirstOrDefaultAsync((blacklistTable) =>
+                blacklistTable.BlacklistId == id);
+
             if (found != null)
-            {
-                var adminDto = ConvertToDto(found);
-                return adminDto;
-            }
+                return ConvertToDto(found);
+
             throw new NullReferenceException();
         }
 
-        private AdminDto ConvertToDto(Admin adminTable)
+        private BlacklistDto ConvertToDto(Blacklist blacklistTable)
         {
-            AdminDto adminDto = new()
+            BlacklistDto blacklistDto = new()
             {
-                AdminId = adminTable.AdminId,
-                Name = adminTable.Name,
-                PasswordHash = adminTable.PasswordHash,
+                BlacklistId = blacklistTable.BlacklistId,
+                PolicyHolderId = blacklistTable.PolicyHolderId,
+                AdminId = blacklistTable.AdminId,
+                BlacklistDate = DateTime.Parse(blacklistTable.BlacklistDate.ToString()),
+                Reason = blacklistTable.Reason,
             };
-            return adminDto;
+            return blacklistDto;
         }
 
-        private void ConvertToTable(AdminDto adminDto, Admin adminTable)
+        private void ConvertToTable(BlacklistDto blacklistDto, Blacklist blacklistTable)
         {
-            adminTable.AdminId = adminDto.AdminId;
-            adminTable.Name = adminDto.Name;
-            adminTable.PasswordHash = adminDto.PasswordHash;
+            blacklistTable.BlacklistId = blacklistDto.BlacklistId;
+            blacklistTable.PolicyHolderId = blacklistDto.PolicyHolderId;
+            blacklistTable.AdminId = blacklistDto.AdminId;
+            blacklistTable.BlacklistDate = DateOnly.FromDateTime(blacklistDto.BlacklistDate);
+            blacklistTable.Reason = blacklistDto.Reason;
             return;
         }
     }
