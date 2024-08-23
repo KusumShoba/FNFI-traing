@@ -1,101 +1,384 @@
-using InsuranceApi.Data;
-using InsuranceApi.DTOs;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
-namespace InsuranceApi.Services
-{
-    public interface IAdminService
-    {
-        Task Add(AdminDto adminDto);
-        Task Delete(int id);
-        Task<List<AdminDto>> GetAll();
-        Task<AdminDto> GetById(int id);
-        Task Update(AdminDto adminDto);
-    }
-
-    public class AdminService : IAdminService
-    {
-        private readonly FnfProjectContext context;
-        public AdminService(FnfProjectContext context)
-        {
-            this.context = context;
-        }
-
-        public async Task<List<AdminDto>> GetAll()
-        {
-            List<AdminDto> adminDtos = new List<AdminDto>();
-            await foreach (var adminTable in context.Admins)
-            {
-                AdminDto adminDto = ConvertToDto(adminTable);
-                adminDtos.Add(adminDto);
-            }
-            return adminDtos;
-        }
-
-        public async Task Delete(int id)
-        {
-            var found = await context.Admins.FirstOrDefaultAsync((adminTable) => adminTable.AdminId == id);
-            if (found != null)
-            {
-                context.Admins.Remove(found);
-                await context.SaveChangesAsync();
-                return;
-            }
-            throw new NullReferenceException();
-        }
-
-        public async Task Add(AdminDto adminDto)
-        {
-            Admin adminTable = new Admin();
-            ConvertToTable(adminDto, adminTable);
-            context.Admins.Add(adminTable);
-            await context.SaveChangesAsync();
-            return;
-        }
-
-        public async Task Update(AdminDto adminDto)
-        {
-            var found = await context.Admins.FirstOrDefaultAsync((adminTable) =>
-                adminTable.AdminId == adminDto.AdminId);
-            if (found != null)
-            {
-                ConvertToTable(adminDto, found);
-                await context.SaveChangesAsync();
-                return;
-            }
-            throw new NullReferenceException();
-        }
-
-        public async Task<AdminDto> GetById(int id)
-        {
-            var found = await context.Admins.FirstOrDefaultAsync((adminTable) => adminTable.AdminId == id);
-            if (found != null)
-            {
-                var adminDto = ConvertToDto(found);
-                return adminDto;
-            }
-            throw new NullReferenceException();
-        }
-
-        private AdminDto ConvertToDto(Admin adminTable)
-        {
-            AdminDto adminDto = new()
-            {
-                AdminId = adminTable.AdminId,
-                Name = adminTable.Name,
-                PasswordHash = adminTable.PasswordHash,
-            };
-            return adminDto;
-        }
-
-        private void ConvertToTable(AdminDto adminDto, Admin adminTable)
-        {
-            adminTable.AdminId = adminDto.AdminId;
-            adminTable.Name = adminDto.Name;
-            adminTable.PasswordHash = adminDto.PasswordHash;
-            return;
-        }
-    }
-}
+Log level is set to Informational (Default).
+Source code repository not available. Some features may not work as expected.
+Connected to test environment '< Local Windows Environment >'
+Test data store opened in 0.283 sec.
+========== Starting test discovery ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.11]   Discovering: TestProject1
+[xUnit.net 00:00:00.15]   Discovered:  TestProject1
+========== Test discovery finished: 9 Tests found in 2.5 sec ==========
+Building Test Projects
+========== Starting test run ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.09]   Starting:    TestProject1
+[xUnit.net 00:00:00.24]   Finished:    TestProject1
+========== Test run finished: 1 Tests (1 Passed, 0 Failed, 0 Skipped) run in 260 ms ==========
+Building Test Projects
+========== Starting test run ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.09]   Starting:    TestProject1
+[xUnit.net 00:00:00.25]     InsuranceApi.Tests.MySampleTest.GetAll_ReturnsOkResult_WithListOfAdmins [FAIL]
+[xUnit.net 00:00:00.25]       Assert.IsType() Failure: Value is not the exact type
+[xUnit.net 00:00:00.25]       Expected: typeof(InsuranceApi.DTOs.AdminDto)
+[xUnit.net 00:00:00.25]       Actual:   typeof(System.Collections.Generic.List<AdminDto>)
+[xUnit.net 00:00:00.25]       Stack Trace:
+[xUnit.net 00:00:00.25]         C:\Users\6147965\source\repos\InsuranceApi\TestProject1\MySampleTest.cs(40,0): at InsuranceApi.Tests.MySampleTest.GetAll_ReturnsOkResult_WithListOfAdmins()
+[xUnit.net 00:00:00.25]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.26]   Finished:    TestProject1
+========== Test run finished: 9 Tests (8 Passed, 1 Failed, 0 Skipped) run in 278 ms ==========
+Building Test Projects
+Starting test discovery for requested test run
+========== Starting test discovery ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.10]   Discovering: TestProject1
+[xUnit.net 00:00:00.14]   Discovered:  TestProject1
+========== Test discovery finished: 17 Tests found in 709.5 ms ==========
+========== Starting test run ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.09]   Starting:    TestProject1
+[xUnit.net 00:00:00.24]   Finished:    TestProject1
+========== Test run finished: 8 Tests (8 Passed, 0 Failed, 0 Skipped) run in 257 ms ==========
+Building Test Projects
+Starting test discovery for requested test run
+========== Starting test discovery ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.11]   Discovering: TestProject1
+[xUnit.net 00:00:00.15]   Discovered:  TestProject1
+========== Test discovery finished: 25 Tests found in 722.4 ms ==========
+========== Starting test run ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.09]   Starting:    TestProject1
+[xUnit.net 00:00:00.24]   Finished:    TestProject1
+========== Test run finished: 8 Tests (8 Passed, 0 Failed, 0 Skipped) run in 255 ms ==========
+Building Test Projects
+Starting test discovery for requested test run
+========== Starting test discovery ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.11]   Discovering: TestProject1
+[xUnit.net 00:00:00.15]   Discovered:  TestProject1
+========== Test discovery finished: 33 Tests found in 731.4 ms ==========
+========== Starting test run ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.08]   Starting:    TestProject1
+[xUnit.net 00:00:00.23]   Finished:    TestProject1
+========== Test run finished: 8 Tests (8 Passed, 0 Failed, 0 Skipped) run in 248 ms ==========
+Building Test Projects
+Starting test discovery for requested test run
+========== Starting test discovery ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.11]   Discovering: TestProject1
+[xUnit.net 00:00:00.15]   Discovered:  TestProject1
+========== Test discovery finished: 41 Tests found in 738.8 ms ==========
+========== Starting test run ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.09]   Starting:    TestProject1
+[xUnit.net 00:00:00.25]   Finished:    TestProject1
+========== Test run finished: 8 Tests (8 Passed, 0 Failed, 0 Skipped) run in 264 ms ==========
+Building Test Projects
+Aborting test run due to build failures. Please see the build output for more details.
+Building Test Projects
+Starting test discovery for requested test run
+========== Starting test discovery ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.11]   Discovering: TestProject1
+[xUnit.net 00:00:00.17]   Discovered:  TestProject1
+========== Test discovery finished: 49 Tests found in 770.2 ms ==========
+========== Starting test run ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.10]   Starting:    TestProject1
+[xUnit.net 00:00:00.27]   Finished:    TestProject1
+========== Test run finished: 8 Tests (8 Passed, 0 Failed, 0 Skipped) run in 290 ms ==========
+Building Test Projects
+Starting test discovery for requested test run
+========== Starting test discovery ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.11]   Discovering: TestProject1
+[xUnit.net 00:00:00.15]   Discovered:  TestProject1
+========== Test discovery finished: 57 Tests found in 803.6 ms ==========
+========== Starting test run ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.09]   Starting:    TestProject1
+[xUnit.net 00:00:00.24]   Finished:    TestProject1
+========== Test run finished: 8 Tests (8 Passed, 0 Failed, 0 Skipped) run in 262 ms ==========
+Building Test Projects
+Starting test discovery for requested test run
+========== Starting test discovery ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.11]   Discovering: TestProject1
+[xUnit.net 00:00:00.15]   Discovered:  TestProject1
+========== Test discovery finished: 65 Tests found in 732 ms ==========
+========== Starting test run ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.09]   Starting:    TestProject1
+[xUnit.net 00:00:00.24]   Finished:    TestProject1
+========== Test run finished: 8 Tests (8 Passed, 0 Failed, 0 Skipped) run in 257 ms ==========
+Building Test Projects
+Starting test discovery for requested test run
+========== Starting test discovery ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.11]   Discovering: TestProject1
+[xUnit.net 00:00:00.15]   Discovered:  TestProject1
+========== Test discovery finished: 65 Tests found in 727.7 ms ==========
+========== Starting test run ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.09]   Starting:    TestProject1
+[xUnit.net 00:00:00.25]   Finished:    TestProject1
+========== Test run finished: 8 Tests (8 Passed, 0 Failed, 0 Skipped) run in 266 ms ==========
+Building Test Projects
+Starting test discovery for requested test run
+========== Starting test discovery ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.10]   Discovering: TestProject1
+[xUnit.net 00:00:00.16]   Discovered:  TestProject1
+========== Test discovery finished: 73 Tests found in 757.9 ms ==========
+========== Starting test run ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.09]   Starting:    TestProject1
+[xUnit.net 00:00:00.24]     TestProject1.BlackListTest.GetAll_ReturnsOkResult_WithListOfBlackLists [FAIL]
+[xUnit.net 00:00:00.24]       Assert.IsType() Failure: Value is not the exact type
+[xUnit.net 00:00:00.24]       Expected: typeof(Microsoft.AspNetCore.Mvc.OkResult)
+[xUnit.net 00:00:00.24]       Actual:   typeof(Microsoft.AspNetCore.Mvc.OkObjectResult)
+[xUnit.net 00:00:00.24]       Stack Trace:
+[xUnit.net 00:00:00.24]         C:\Users\6147965\source\repos\InsuranceApi\TestProject1\BlackListTest.cs(42,0): at TestProject1.BlackListTest.GetAll_ReturnsOkResult_WithListOfBlackLists()
+[xUnit.net 00:00:00.24]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.25]   Finished:    TestProject1
+========== Test run finished: 8 Tests (7 Passed, 1 Failed, 0 Skipped) run in 268 ms ==========
+Building Test Projects
+Starting test discovery for requested test run
+========== Starting test discovery ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.11]   Discovering: TestProject1
+[xUnit.net 00:00:00.16]   Discovered:  TestProject1
+========== Test discovery finished: 73 Tests found in 746.6 ms ==========
+========== Starting test run ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.10]   Starting:    TestProject1
+[xUnit.net 00:00:00.25]     TestProject1.BlackListTest.GetAll_ReturnsOkResult_WithListOfBlackLists [FAIL]
+[xUnit.net 00:00:00.25]       Assert.IsType() Failure: Value is not the exact type
+[xUnit.net 00:00:00.25]       Expected: typeof(Microsoft.AspNetCore.Mvc.OkResult)
+[xUnit.net 00:00:00.25]       Actual:   typeof(Microsoft.AspNetCore.Mvc.OkObjectResult)
+[xUnit.net 00:00:00.26]       Stack Trace:
+[xUnit.net 00:00:00.26]         C:\Users\6147965\source\repos\InsuranceApi\TestProject1\BlackListTest.cs(42,0): at TestProject1.BlackListTest.GetAll_ReturnsOkResult_WithListOfBlackLists()
+[xUnit.net 00:00:00.26]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.27]   Finished:    TestProject1
+========== Test run finished: 8 Tests (7 Passed, 1 Failed, 0 Skipped) run in 290 ms ==========
+Building Test Projects
+Starting test discovery for requested test run
+========== Starting test discovery ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.11]   Discovering: TestProject1
+[xUnit.net 00:00:00.17]   Discovered:  TestProject1
+========== Test discovery finished: 73 Tests found in 771.9 ms ==========
+========== Starting test run ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.09]   Starting:    TestProject1
+[xUnit.net 00:00:00.26]     TestProject1.BlackListTest.GetAll_ReturnsOkResult_WithListOfBlackLists [FAIL]
+[xUnit.net 00:00:00.26]       Assert.IsType() Failure: Value is not the exact type
+[xUnit.net 00:00:00.26]       Expected: typeof(Microsoft.AspNetCore.Mvc.OkResult)
+[xUnit.net 00:00:00.26]       Actual:   typeof(Microsoft.AspNetCore.Mvc.OkObjectResult)
+[xUnit.net 00:00:00.26]       Stack Trace:
+[xUnit.net 00:00:00.26]         C:\Users\6147965\source\repos\InsuranceApi\TestProject1\BlackListTest.cs(42,0): at TestProject1.BlackListTest.GetAll_ReturnsOkResult_WithListOfBlackLists()
+[xUnit.net 00:00:00.26]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.26]   Finished:    TestProject1
+========== Test run finished: 17 Tests (16 Passed, 1 Failed, 0 Skipped) run in 279 ms ==========
+Building Test Projects
+Starting test discovery for requested test run
+========== Starting test discovery ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.11]   Discovering: TestProject1
+[xUnit.net 00:00:00.16]   Discovered:  TestProject1
+========== Test discovery finished: 73 Tests found in 766.7 ms ==========
+========== Starting test run ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.10]   Starting:    TestProject1
+[xUnit.net 00:00:00.26]   Finished:    TestProject1
+========== Test run finished: 8 Tests (8 Passed, 0 Failed, 0 Skipped) run in 275 ms ==========
+Building Test Projects
+Starting test discovery for requested test run
+========== Starting test discovery ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.15]   Discovering: TestProject1
+[xUnit.net 00:00:00.19]   Discovered:  TestProject1
+========== Test discovery finished: 79 Tests found in 1.2 sec ==========
+========== Starting test run ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.09]   Starting:    TestProject1
+[xUnit.net 00:00:00.82]     TestProject1.Services.AdminServiceTests.GetAll_ShouldReturnAllAdmins [FAIL]
+[xUnit.net 00:00:00.82]       System.NullReferenceException : Object reference not set to an instance of an object.
+[xUnit.net 00:00:00.82]       Stack Trace:
+[xUnit.net 00:00:00.82]         C:\Users\6147965\source\repos\InsuranceApi\InsuranceProject\Services\AdminService.cs(29,0): at InsuranceApi.Services.AdminService.GetAll()
+[xUnit.net 00:00:00.82]         C:\Users\6147965\source\repos\InsuranceApi\InsuranceProject\Services\AdminService.cs(29,0): at InsuranceApi.Services.AdminService.GetAll()
+[xUnit.net 00:00:00.82]         C:\Users\6147965\source\repos\InsuranceApi\TestProject1\Services\AdminServiceTest.cs(48,0): at TestProject1.Services.AdminServiceTests.GetAll_ShouldReturnAllAdmins()
+[xUnit.net 00:00:00.82]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.88]     TestProject1.Services.AdminServiceTests.GetById_ShouldReturnAdmin_WhenAdminExists [FAIL]
+[xUnit.net 00:00:00.88]       System.NotSupportedException : Specified method is not supported.
+[xUnit.net 00:00:00.88]       Stack Trace:
+[xUnit.net 00:00:00.88]            at Microsoft.EntityFrameworkCore.DbSet`1.System.Linq.IQueryable.get_Provider()
+[xUnit.net 00:00:00.88]            at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ExecuteAsync[TSource,TResult](MethodInfo operatorMethodInfo, IQueryable`1 source, Expression expression, CancellationToken cancellationToken)
+[xUnit.net 00:00:00.88]            at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ExecuteAsync[TSource,TResult](MethodInfo operatorMethodInfo, IQueryable`1 source, LambdaExpression expression, CancellationToken cancellationToken)
+[xUnit.net 00:00:00.88]            at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync[TSource](IQueryable`1 source, Expression`1 predicate, CancellationToken cancellationToken)
+[xUnit.net 00:00:00.88]         C:\Users\6147965\source\repos\InsuranceApi\InsuranceProject\Services\AdminService.cs(73,0): at InsuranceApi.Services.AdminService.GetById(Int32 id)
+[xUnit.net 00:00:00.88]         C:\Users\6147965\source\repos\InsuranceApi\TestProject1\Services\AdminServiceTest.cs(78,0): at TestProject1.Services.AdminServiceTests.GetById_ShouldReturnAdmin_WhenAdminExists()
+[xUnit.net 00:00:00.88]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.90]     TestProject1.Services.AdminServiceTests.Add_ShouldAddAdmin [FAIL]
+[xUnit.net 00:00:00.90]       System.NullReferenceException : Object reference not set to an instance of an object.
+[xUnit.net 00:00:00.90]       Stack Trace:
+[xUnit.net 00:00:00.90]         C:\Users\6147965\source\repos\InsuranceApi\InsuranceProject\Services\AdminService.cs(53,0): at InsuranceApi.Services.AdminService.Add(AdminDto adminDto)
+[xUnit.net 00:00:00.90]         C:\Users\6147965\source\repos\InsuranceApi\TestProject1\Services\AdminServiceTest.cs(63,0): at TestProject1.Services.AdminServiceTests.Add_ShouldAddAdmin()
+[xUnit.net 00:00:00.90]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.95]     TestProject1.Services.AdminServiceTests.GetById_ShouldThrowNullReferenceException_WhenAdminDoesNotExist [FAIL]
+[xUnit.net 00:00:00.95]       Assert.Throws() Failure: Exception type was not an exact match
+[xUnit.net 00:00:00.95]       Expected: typeof(System.NullReferenceException)
+[xUnit.net 00:00:00.95]       Actual:   typeof(System.NotSupportedException)
+[xUnit.net 00:00:00.95]       ---- System.NotSupportedException : Specified method is not supported.
+[xUnit.net 00:00:00.95]       Stack Trace:
+[xUnit.net 00:00:00.95]         C:\Users\6147965\source\repos\InsuranceApi\TestProject1\Services\AdminServiceTest.cs(92,0): at TestProject1.Services.AdminServiceTests.GetById_ShouldThrowNullReferenceException_WhenAdminDoesNotExist()
+[xUnit.net 00:00:00.95]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.95]         ----- Inner Stack Trace -----
+[xUnit.net 00:00:00.95]            at Microsoft.EntityFrameworkCore.DbSet`1.System.Linq.IQueryable.get_Provider()
+[xUnit.net 00:00:00.95]            at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ExecuteAsync[TSource,TResult](MethodInfo operatorMethodInfo, IQueryable`1 source, Expression expression, CancellationToken cancellationToken)
+[xUnit.net 00:00:00.95]            at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ExecuteAsync[TSource,TResult](MethodInfo operatorMethodInfo, IQueryable`1 source, LambdaExpression expression, CancellationToken cancellationToken)
+[xUnit.net 00:00:00.95]            at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync[TSource](IQueryable`1 source, Expression`1 predicate, CancellationToken cancellationToken)
+[xUnit.net 00:00:00.95]         C:\Users\6147965\source\repos\InsuranceApi\InsuranceProject\Services\AdminService.cs(73,0): at InsuranceApi.Services.AdminService.GetById(Int32 id)
+[xUnit.net 00:00:00.95]     TestProject1.Services.AdminServiceTests.Update_ShouldUpdateAdmin_WhenAdminExists [FAIL]
+[xUnit.net 00:00:00.95]       System.NotSupportedException : Specified method is not supported.
+[xUnit.net 00:00:00.95]       Stack Trace:
+[xUnit.net 00:00:00.95]            at Microsoft.EntityFrameworkCore.DbSet`1.System.Linq.IQueryable.get_Provider()
+[xUnit.net 00:00:00.95]            at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ExecuteAsync[TSource,TResult](MethodInfo operatorMethodInfo, IQueryable`1 source, Expression expression, CancellationToken cancellationToken)
+[xUnit.net 00:00:00.96]            at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ExecuteAsync[TSource,TResult](MethodInfo operatorMethodInfo, IQueryable`1 source, LambdaExpression expression, CancellationToken cancellationToken)
+[xUnit.net 00:00:00.96]            at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync[TSource](IQueryable`1 source, Expression`1 predicate, CancellationToken cancellationToken)
+[xUnit.net 00:00:00.96]         C:\Users\6147965\source\repos\InsuranceApi\InsuranceProject\Services\AdminService.cs(60,0): at InsuranceApi.Services.AdminService.Update(AdminDto adminDto)
+[xUnit.net 00:00:00.96]         C:\Users\6147965\source\repos\InsuranceApi\TestProject1\Services\AdminServiceTest.cs(120,0): at TestProject1.Services.AdminServiceTests.Update_ShouldUpdateAdmin_WhenAdminExists()
+[xUnit.net 00:00:00.96]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.96]     TestProject1.Services.AdminServiceTests.Delete_ShouldRemoveAdmin_WhenAdminExists [FAIL]
+[xUnit.net 00:00:00.96]       System.NotSupportedException : Specified method is not supported.
+[xUnit.net 00:00:00.96]       Stack Trace:
+[xUnit.net 00:00:00.96]            at Microsoft.EntityFrameworkCore.DbSet`1.System.Linq.IQueryable.get_Provider()
+[xUnit.net 00:00:00.96]            at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ExecuteAsync[TSource,TResult](MethodInfo operatorMethodInfo, IQueryable`1 source, Expression expression, CancellationToken cancellationToken)
+[xUnit.net 00:00:00.96]            at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ExecuteAsync[TSource,TResult](MethodInfo operatorMethodInfo, IQueryable`1 source, LambdaExpression expression, CancellationToken cancellationToken)
+[xUnit.net 00:00:00.96]            at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync[TSource](IQueryable`1 source, Expression`1 predicate, CancellationToken cancellationToken)
+[xUnit.net 00:00:00.96]         C:\Users\6147965\source\repos\InsuranceApi\InsuranceProject\Services\AdminService.cs(39,0): at InsuranceApi.Services.AdminService.Delete(Int32 id)
+[xUnit.net 00:00:00.96]         C:\Users\6147965\source\repos\InsuranceApi\TestProject1\Services\AdminServiceTest.cs(103,0): at TestProject1.Services.AdminServiceTests.Delete_ShouldRemoveAdmin_WhenAdminExists()
+[xUnit.net 00:00:00.96]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.97]   Finished:    TestProject1
+========== Test run finished: 6 Tests (0 Passed, 6 Failed, 0 Skipped) run in 983 ms ==========
+Building Test Projects
+Starting test discovery for requested test run
+========== Starting test discovery ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.12]   Discovering: TestProject1
+[xUnit.net 00:00:00.17]   Discovered:  TestProject1
+========== Test discovery finished: 79 Tests found in 763.3 ms ==========
+========== Starting test run ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.10]   Starting:    TestProject1
+[xUnit.net 00:00:00.31]     InsuranceApi.Tests.AdminServiceTests.GetAll_ShouldReturnAllAdmins [FAIL]
+[xUnit.net 00:00:00.32]       System.InvalidOperationException : Services for database providers 'Microsoft.EntityFrameworkCore.InMemory', 'Microsoft.EntityFrameworkCore.SqlServer' have been registered in the service provider. Only a single database provider can be registered in a service provider. If possible, ensure that Entity Framework is managing its service provider by removing the call to 'UseInternalServiceProvider'. Otherwise, consider conditionally registering the database provider, or maintaining one service provider per database provider.
+[xUnit.net 00:00:00.32]       Stack Trace:
+[xUnit.net 00:00:00.32]            at Microsoft.EntityFrameworkCore.Internal.DbContextServices.Initialize(IServiceProvider scopedProvider, DbContextOptions contextOptions, DbContext context)
+[xUnit.net 00:00:00.32]            at Microsoft.EntityFrameworkCore.DbContext.get_ContextServices()
+[xUnit.net 00:00:00.32]            at Microsoft.EntityFrameworkCore.DbContext.get_InternalServiceProvider()
+[xUnit.net 00:00:00.32]            at Microsoft.EntityFrameworkCore.DbContext.get_DbContextDependencies()
+[xUnit.net 00:00:00.32]            at Microsoft.EntityFrameworkCore.DbContext.Microsoft.EntityFrameworkCore.Internal.IDbContextDependencies.get_StateManager()
+[xUnit.net 00:00:00.32]            at Microsoft.EntityFrameworkCore.Internal.InternalDbSet`1.AddRangeAsync(IEnumerable`1 entities, CancellationToken cancellationToken)
+[xUnit.net 00:00:00.32]         C:\Users\6147965\source\repos\InsuranceApi\TestProject1\Services\AdminServiceTest.cs(38,0): at InsuranceApi.Tests.AdminServiceTests.GetAll_ShouldReturnAllAdmins()
+[xUnit.net 00:00:00.32]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.35]     InsuranceApi.Tests.AdminServiceTests.GetById_ShouldThrowNullReferenceException_WhenAdminDoesNotExist [FAIL]
+[xUnit.net 00:00:00.35]       Assert.Throws() Failure: Exception type was not an exact match
+[xUnit.net 00:00:00.35]       Expected: typeof(System.NullReferenceException)
+[xUnit.net 00:00:00.35]       Actual:   typeof(System.InvalidOperationException)
+[xUnit.net 00:00:00.35]       ---- System.InvalidOperationException : Services for database providers 'Microsoft.EntityFrameworkCore.InMemory', 'Microsoft.EntityFrameworkCore.SqlServer' have been registered in the service provider. Only a single database provider can be registered in a service provider. If possible, ensure that Entity Framework is managing its service provider by removing the call to 'UseInternalServiceProvider'. Otherwise, consider conditionally registering the database provider, or maintaining one service provider per database provider.
+[xUnit.net 00:00:00.35]       Stack Trace:
+[xUnit.net 00:00:00.35]         C:\Users\6147965\source\repos\InsuranceApi\TestProject1\Services\AdminServiceTest.cs(85,0): at InsuranceApi.Tests.AdminServiceTests.GetById_ShouldThrowNullReferenceException_WhenAdminDoesNotExist()
+[xUnit.net 00:00:00.35]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.35]         ----- Inner Stack Trace -----
+[xUnit.net 00:00:00.35]            at Microsoft.EntityFrameworkCore.Internal.DbContextServices.Initialize(IServiceProvider scopedProvider, DbContextOptions contextOptions, DbContext context)
+[xUnit.net 00:00:00.35]            at Microsoft.EntityFrameworkCore.DbContext.get_ContextServices()
+[xUnit.net 00:00:00.35]            at Microsoft.EntityFrameworkCore.DbContext.get_Model()
+[xUnit.net 00:00:00.35]            at Microsoft.EntityFrameworkCore.Internal.InternalDbSet`1.get_EntityType()
+[xUnit.net 00:00:00.35]            at Microsoft.EntityFrameworkCore.Internal.InternalDbSet`1.CheckState()
+[xUnit.net 00:00:00.35]            at Microsoft.EntityFrameworkCore.Internal.InternalDbSet`1.get_EntityQueryable()
+[xUnit.net 00:00:00.35]            at Microsoft.EntityFrameworkCore.Internal.InternalDbSet`1.System.Linq.IQueryable.get_Provider()
+[xUnit.net 00:00:00.35]            at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ExecuteAsync[TSource,TResult](MethodInfo operatorMethodInfo, IQueryable`1 source, Expression expression, CancellationToken cancellationToken)
+[xUnit.net 00:00:00.35]            at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ExecuteAsync[TSource,TResult](MethodInfo operatorMethodInfo, IQueryable`1 source, LambdaExpression expression, CancellationToken cancellationToken)
+[xUnit.net 00:00:00.35]            at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.FirstOrDefaultAsync[TSource](IQueryable`1 source, Expression`1 predicate, CancellationToken cancellationToken)
+[xUnit.net 00:00:00.35]         C:\Users\6147965\source\repos\InsuranceApi\InsuranceProject\Services\AdminService.cs(73,0): at InsuranceApi.Services.AdminService.GetById(Int32 id)
+[xUnit.net 00:00:00.35]     InsuranceApi.Tests.AdminServiceTests.GetById_ShouldReturnAdmin_WhenAdminExists [FAIL]
+[xUnit.net 00:00:00.35]       System.InvalidOperationException : Services for database providers 'Microsoft.EntityFrameworkCore.InMemory', 'Microsoft.EntityFrameworkCore.SqlServer' have been registered in the service provider. Only a single database provider can be registered in a service provider. If possible, ensure that Entity Framework is managing its service provider by removing the call to 'UseInternalServiceProvider'. Otherwise, consider conditionally registering the database provider, or maintaining one service provider per database provider.
+[xUnit.net 00:00:00.35]       Stack Trace:
+[xUnit.net 00:00:00.35]            at Microsoft.EntityFrameworkCore.Internal.DbContextServices.Initialize(IServiceProvider scopedProvider, DbContextOptions contextOptions, DbContext context)
+[xUnit.net 00:00:00.35]            at Microsoft.EntityFrameworkCore.DbContext.get_ContextServices()
+[xUnit.net 00:00:00.35]            at Microsoft.EntityFrameworkCore.DbContext.get_InternalServiceProvider()
+[xUnit.net 00:00:00.35]            at Microsoft.EntityFrameworkCore.DbContext.get_DbContextDependencies()
+[xUnit.net 00:00:00.35]            at Microsoft.EntityFrameworkCore.DbContext.Microsoft.EntityFrameworkCore.Internal.IDbContextDependencies.get_StateManager()
+[xUnit.net 00:00:00.35]            at Microsoft.EntityFrameworkCore.Internal.InternalDbSet`1.EntryWithoutDetectChanges(TEntity entity)
+[xUnit.net 00:00:00.35]            at Microsoft.EntityFrameworkCore.Internal.InternalDbSet`1.AddAsync(TEntity entity, CancellationToken cancellationToken)
+[xUnit.net 00:00:00.35]         C:\Users\6147965\source\repos\InsuranceApi\TestProject1\Services\AdminServiceTest.cs(70,0): at InsuranceApi.Tests.AdminServiceTests.GetById_ShouldReturnAdmin_WhenAdminExists()
+[xUnit.net 00:00:00.35]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.36]     InsuranceApi.Tests.AdminServiceTests.Delete_ShouldRemoveAdmin_WhenAdminExists [FAIL]
+[xUnit.net 00:00:00.36]       System.InvalidOperationException : Services for database providers 'Microsoft.EntityFrameworkCore.InMemory', 'Microsoft.EntityFrameworkCore.SqlServer' have been registered in the service provider. Only a single database provider can be registered in a service provider. If possible, ensure that Entity Framework is managing its service provider by removing the call to 'UseInternalServiceProvider'. Otherwise, consider conditionally registering the database provider, or maintaining one service provider per database provider.
+[xUnit.net 00:00:00.36]       Stack Trace:
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.Internal.DbContextServices.Initialize(IServiceProvider scopedProvider, DbContextOptions contextOptions, DbContext context)
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.DbContext.get_ContextServices()
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.DbContext.get_InternalServiceProvider()
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.DbContext.get_DbContextDependencies()
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.DbContext.Microsoft.EntityFrameworkCore.Internal.IDbContextDependencies.get_StateManager()
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.Internal.InternalDbSet`1.EntryWithoutDetectChanges(TEntity entity)
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.Internal.InternalDbSet`1.AddAsync(TEntity entity, CancellationToken cancellationToken)
+[xUnit.net 00:00:00.36]         C:\Users\6147965\source\repos\InsuranceApi\TestProject1\Services\AdminServiceTest.cs(93,0): at InsuranceApi.Tests.AdminServiceTests.Delete_ShouldRemoveAdmin_WhenAdminExists()
+[xUnit.net 00:00:00.36]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.36]     InsuranceApi.Tests.AdminServiceTests.Update_ShouldUpdateAdmin_WhenAdminExists [FAIL]
+[xUnit.net 00:00:00.36]       System.InvalidOperationException : Services for database providers 'Microsoft.EntityFrameworkCore.InMemory', 'Microsoft.EntityFrameworkCore.SqlServer' have been registered in the service provider. Only a single database provider can be registered in a service provider. If possible, ensure that Entity Framework is managing its service provider by removing the call to 'UseInternalServiceProvider'. Otherwise, consider conditionally registering the database provider, or maintaining one service provider per database provider.
+[xUnit.net 00:00:00.36]       Stack Trace:
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.Internal.DbContextServices.Initialize(IServiceProvider scopedProvider, DbContextOptions contextOptions, DbContext context)
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.DbContext.get_ContextServices()
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.DbContext.get_InternalServiceProvider()
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.DbContext.get_DbContextDependencies()
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.DbContext.Microsoft.EntityFrameworkCore.Internal.IDbContextDependencies.get_StateManager()
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.Internal.InternalDbSet`1.EntryWithoutDetectChanges(TEntity entity)
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.Internal.InternalDbSet`1.AddAsync(TEntity entity, CancellationToken cancellationToken)
+[xUnit.net 00:00:00.36]         C:\Users\6147965\source\repos\InsuranceApi\TestProject1\Services\AdminServiceTest.cs(109,0): at InsuranceApi.Tests.AdminServiceTests.Update_ShouldUpdateAdmin_WhenAdminExists()
+[xUnit.net 00:00:00.36]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.36]     InsuranceApi.Tests.AdminServiceTests.Add_ShouldAddAdmin [FAIL]
+[xUnit.net 00:00:00.36]       System.InvalidOperationException : Services for database providers 'Microsoft.EntityFrameworkCore.InMemory', 'Microsoft.EntityFrameworkCore.SqlServer' have been registered in the service provider. Only a single database provider can be registered in a service provider. If possible, ensure that Entity Framework is managing its service provider by removing the call to 'UseInternalServiceProvider'. Otherwise, consider conditionally registering the database provider, or maintaining one service provider per database provider.
+[xUnit.net 00:00:00.36]       Stack Trace:
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.Internal.DbContextServices.Initialize(IServiceProvider scopedProvider, DbContextOptions contextOptions, DbContext context)
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.DbContext.get_ContextServices()
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.DbContext.get_InternalServiceProvider()
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.DbContext.get_DbContextDependencies()
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.DbContext.Microsoft.EntityFrameworkCore.Internal.IDbContextDependencies.get_StateManager()
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.Internal.InternalDbSet`1.EntryWithoutDetectChanges(TEntity entity)
+[xUnit.net 00:00:00.36]            at Microsoft.EntityFrameworkCore.Internal.InternalDbSet`1.Add(TEntity entity)
+[xUnit.net 00:00:00.36]         C:\Users\6147965\source\repos\InsuranceApi\InsuranceProject\Services\AdminService.cs(53,0): at InsuranceApi.Services.AdminService.Add(AdminDto adminDto)
+[xUnit.net 00:00:00.36]         C:\Users\6147965\source\repos\InsuranceApi\TestProject1\Services\AdminServiceTest.cs(57,0): at InsuranceApi.Tests.AdminServiceTests.Add_ShouldAddAdmin()
+[xUnit.net 00:00:00.36]         --- End of stack trace from previous location ---
+[xUnit.net 00:00:00.37]   Finished:    TestProject1
+========== Test run finished: 6 Tests (0 Passed, 6 Failed, 0 Skipped) run in 384 ms ==========
+Building Test Projects
+Aborting test run due to build failures. Please see the build output for more details.
+Building Test Projects
+Starting test discovery for requested test run
+========== Starting test discovery ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.12]   Discovering: TestProject1
+[xUnit.net 00:00:00.18]   Discovered:  TestProject1
+========== Test discovery finished: 74 Tests found in 797 ms ==========
+========== Starting test run ==========
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.8)
+[xUnit.net 00:00:00.09]   Starting:    TestProject1
+[xUnit.net 00:00:00.27]     AdminServiceTests.Add_AdminAdded_ReturnsTrue [FAIL]
+[xUnit.net 00:00:00.27]       System.InvalidOperationException : Services for database providers 'Microsoft.EntityFrameworkCore.InMemory', 'Microsoft.EntityFrameworkCore.SqlServer' have been registered in the service provider. Only a single database provider can be registered in a service provider. If possible, ensure that Entity Framework is managing its service provider by removing the call to 'UseInternalServiceProvider'. Otherwise, consider conditionally registering the database provider, or maintaining one service provider per database provider.
+[xUnit.net 00:00:00.27]       Stack Trace:
+[xUnit.net 00:00:00.27]            at Microsoft.EntityFrameworkCore.Internal.DbContextServices.Initialize(IServiceProvider scopedProvider, DbContextOptions contextOptions, DbContext context)
+[xUnit.net 00:00:00.27]            at Microsoft.EntityFrameworkCore.DbContext.get_ContextServices()
+[xUnit.net 00:00:00.27]            at Microsoft.EntityFrameworkCore.DbContext.get_InternalServiceProvider()
+[xUnit.net 00:00:00.27]            at Microsoft.EntityFrameworkCore.DbContext.Microsoft.EntityFrameworkCore.Infrastructure.IInfrastructure<System.IServiceProvider>.get_Instance()
+[xUnit.net 00:00:00.27]            at Microsoft.EntityFrameworkCore.Infrastructure.Internal.InfrastructureExtensions.GetService(IInfrastructure`1 accessor, Type serviceType)
+[xUnit.net 00:00:00.27]            at Microsoft.EntityFrameworkCore.Infrastructure.Internal.InfrastructureExtensions.GetService[TService](IInfrastructure`1 accessor)
+[xUnit.net 00:00:00.27]            at Microsoft.EntityFrameworkCore.Infrastructure.AccessorExtensions.GetService[TService](IInfrastructure`1 accessor)
+[xUnit.net 00:00:00.27]            at Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade.get_Dependencies()
+[xUnit.net 00:00:00.27]            at Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade.EnsureCreated()
+[xUnit.net 00:00:00.27]         C:\Users\6147965\source\repos\InsuranceApi\TestProject1\Services\AdminServiceTest.cs(35,0): at AdminServiceTests..ctor()
+[xUnit.net 00:00:00.27]            at System.RuntimeType.CreateInstanceDefaultCtor(Boolean publicOnly, Boolean wrapExceptions)
+[xUnit.net 00:00:00.28]   Finished:    TestProject1
+========== Test run finished: 1 Tests (0 Passed, 1 Failed, 0 Skipped) run in 294 ms ==========
