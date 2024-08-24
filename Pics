@@ -1,65 +1,48 @@
 using InsuranceApi.Data;
-using InsuranceApi.DTOs;
-
 using InsuranceApi.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Net.Sockets;
 
-namespace InsuranceApi.Tests
+namespace InsuranceTestMock
 {
     [TestClass]
-    public class PolicyHolderServiceTests
+    public class PolicyHolderServiceTest
     {
-        private Mock<DbSet<PolicyHolder>> mockSet;
-        private Mock<FnfProjectContext> mockContext;
-        private PolicyHolderService service;
+        private Mock<DbSet<PolicyHolder>> _mockDbSet;
+        private Mock<FnfProjectContext> _mockContext;
+        private PolicyHolderService _service;
 
         [TestInitialize]
         public void SetUp()
         {
-            // Initialize mocks
-            mockSet = new Mock<DbSet<PolicyHolder>>();
-            mockContext = new Mock<FnfProjectContext>();
-
-            // Seed initial data for DbSet
-            var policyHolders = new List<PolicyHolder>
+            _mockDbSet = new Mock<DbSet<PolicyHolder>>();
+            var data = new List<PolicyHolder>
             {
                 new PolicyHolder { PolicyHolderId = 1, Name = "John Doe", Address = "123 Main St", Email = "john@example.com", PasswordHash = "hash", Phone = "1234567890", Status = 1 },
                 new PolicyHolder { PolicyHolderId = 2, Name = "Jane Doe", Address = "456 Elm St", Email = "jane@example.com", PasswordHash = "hash", Phone = "0987654321", Status = 0 }
             }.AsQueryable();
 
-            // Set up the mockSet to behave like a DbSet
-            mockSet.As<IQueryable<PolicyHolder>>().Setup(m => m.Provider).Returns(policyHolders.Provider);
-            mockSet.As<IQueryable<PolicyHolder>>().Setup(m => m.Expression).Returns(policyHolders.Expression);
-            mockSet.As<IQueryable<PolicyHolder>>().Setup(m => m.ElementType).Returns(policyHolders.ElementType);
-            mockSet.As<IQueryable<PolicyHolder>>().Setup(m => m.GetEnumerator()).Returns(policyHolders.GetEnumerator());
+            // Set up the _mockDbSet to behave like a DbSet
+            _mockDbSet.As<IQueryable<PolicyHolder>>().Setup(m => m.Provider).Returns(data.Provider);
+            _mockDbSet.As<IQueryable<PolicyHolder>>().Setup(m => m.Expression).Returns(data.Expression);
+            _mockDbSet.As<IQueryable<PolicyHolder>>().Setup(m => m.ElementType).Returns(data.ElementType);
+            _mockDbSet.As<IQueryable<PolicyHolder>>().Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
 
-            // Set up FindAsync and other methods
-            mockSet.Setup(m => m.FindAsync(It.IsAny<int>())).ReturnsAsync((int id) => policyHolders.FirstOrDefault(p => p.PolicyHolderId == id));
-            mockContext.Setup(c => c.PolicyHolders).Returns(mockSet.Object);
-
-            // Initialize the service with the mocked context
-            service = new PolicyHolderService(mockContext.Object);
-
+            _mockContext = new Mock<FnfProjectContext>();
+            _mockContext.Setup(c => c.PolicyHolders).Returns(_mockDbSet.Object);
         }
-
         [TestMethod]
-        public async Task GetAll_ShouldReturnAllPolicyHolders()
+        public async Task ShouldGetAllPolicies()
         {
+            //Arrange
+            _service = new PolicyHolderService(_mockContext.Object); 
+            
+            //Act
+            var data = await _service.GetAll();
 
-            // Act
-            var result = service.GetAll();
-
-            // Assert
-            Assert.AreEqual(2, result.Count);
-
+            //Assert
+            Assert.AreEqual(2, data.Count);
         }
-
     }
 }
