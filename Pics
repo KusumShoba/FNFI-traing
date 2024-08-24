@@ -1,3 +1,59 @@
+// Example Repo Class
+public class MyRepo
+{
+    private readonly MyDbContext _context;
+
+    public MyRepo(MyDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<MyEntity> GetByIdAsync(int id)
+    {
+        return await _context.MyEntities.FindAsync(id);
+    }
+
+    // Other CRUD operations...
+}
+
+// Unit Test using Moq and xUnit
+public class MyRepoTests
+{
+    private readonly Mock<MyDbContext> _mockContext;
+    private readonly Mock<DbSet<MyEntity>> _mockSet;
+    private readonly MyRepo _repo;
+
+    public MyRepoTests()
+    {
+        _mockContext = new Mock<MyDbContext>();
+        _mockSet = new Mock<DbSet<MyEntity>>();
+        _repo = new MyRepo(_mockContext.Object);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ReturnsEntity_WhenEntityExists()
+    {
+        // Arrange
+        var entity = new MyEntity { Id = 1 };
+        _mockSet.Setup(m => m.FindAsync(1)).ReturnsAsync(entity);
+        _mockContext.Setup(c => c.MyEntities).Returns(_mockSet.Object);
+
+        // Act
+        var result = await _repo.GetByIdAsync(1);
+
+        // Assert
+        Assert.Equal(entity, result);
+    }
+
+    // Other test methods...
+}
+
+
+
+
+Implement above in m9:
+
+
 using InsuranceApi.Data;
 using InsuranceApi.Services;
 using Microsoft.EntityFrameworkCore;
@@ -31,6 +87,11 @@ namespace InsuranceTestMock
 
             _mockContext = new Mock<FnfProjectContext>();
             _mockContext.Setup(c => c.PolicyHolders).Returns(_mockDbSet.Object);
+            
+            //_mockDbSet.Setup(set => set.FirstOrDefault(It.IsAny<PolicyHolder>())).Returns((int id) => data.FirstOrDefault(d => d.PolicyHolderId == id));
+            //_mockDbSet.Setup(m => m.FindAsync(It.IsAny<int>())).ReturnsAsync((int id) => data.FirstOrDefault(p => p.PolicyHolderId == id));
+
+
         }
         [TestMethod]
         public async Task ShouldGetAllPolicies()
@@ -44,5 +105,21 @@ namespace InsuranceTestMock
             //Assert
             Assert.AreEqual(2, data.Count);
         }
+
+        [TestMethod]
+        public async Task ShouldGetPolicyById()
+        {
+        // Arrange
+        _service = new PolicyHolderService(_mockContext.Object);
+
+        // Act
+        //var policyHolderId = 1;
+        var result = await _service.GetById(1);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(1, result.PolicyHolderId);
     }
+
+}
 }
