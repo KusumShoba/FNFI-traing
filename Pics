@@ -1,49 +1,101 @@
-// Example Repo Class
-public class MyRepo
+using InsuranceApi.Data;
+using InsuranceApi.DTOs;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace InsuranceApi.Services
 {
-    private readonly MyDbContext _context;
-
-    public MyRepo(MyDbContext context)
+    public interface IAdminService
     {
-        _context = context;
+        Task Add(AdminDto adminDto);
+        Task Delete(int id);
+        Task<List<AdminDto>> GetAll();
+        Task<AdminDto> GetById(int id);
+        Task Update(AdminDto adminDto);
     }
 
-    public async Task<MyEntity> GetByIdAsync(int id)
+    public class AdminService : IAdminService
     {
-        return await _context.MyEntities.FindAsync(id);
+        private readonly FnfProjectContext context;
+        public AdminService(FnfProjectContext context)
+        {
+            this.context = context;
+        }
+
+        public async Task<List<AdminDto>> GetAll()
+        {
+            List<AdminDto> adminDtos = new List<AdminDto>();
+            await foreach (var adminTable in context.Admins)
+            {
+                AdminDto adminDto = ConvertToDto(adminTable);
+                adminDtos.Add(adminDto);
+            }
+            return adminDtos;
+        }
+
+        public async Task Delete(int id)
+        {
+            var found = await context.Admins.FirstOrDefaultAsync((adminTable) => adminTable.AdminId == id);
+            if (found != null)
+            {
+                context.Admins.Remove(found);
+                await context.SaveChangesAsync();
+                return;
+            }
+            throw new NullReferenceException();
+        }
+
+        public async Task Add(AdminDto adminDto)
+        {
+            Admin adminTable = new Admin();
+            ConvertToTable(adminDto, adminTable);
+            context.Admins.Add(adminTable);
+            await context.SaveChangesAsync();
+            return;
+        }
+
+        public async Task Update(AdminDto adminDto)
+        {
+            var found = await context.Admins.FirstOrDefaultAsync((adminTable) =>
+                adminTable.AdminId == adminDto.AdminId);
+            if (found != null)
+            {
+                ConvertToTable(adminDto, found);
+                await context.SaveChangesAsync();
+                return;
+            }
+            throw new NullReferenceException();
+        }
+
+        public async Task<AdminDto> GetById(int id)
+        {
+            var found = await context.Admins.FirstOrDefaultAsync((adminTable) => adminTable.AdminId == id);
+            if (found != null)
+            {
+                var adminDto = ConvertToDto(found);
+                return adminDto;
+            }
+            throw new NullReferenceException();
+        }
+
+        private AdminDto ConvertToDto(Admin adminTable)
+        {
+            AdminDto adminDto = new()
+            {
+                AdminId = adminTable.AdminId,
+                Name = adminTable.Name,
+                PasswordHash = adminTable.PasswordHash,
+            };
+            return adminDto;
+        }
+
+        private void ConvertToTable(AdminDto adminDto, Admin adminTable)
+        {
+            adminTable.AdminId = adminDto.AdminId;
+            adminTable.Name = adminDto.Name;
+            adminTable.PasswordHash = adminDto.PasswordHash;
+            return;
+        }
     }
-
-    // Other CRUD operations...
-}
-
-// Unit Test using Moq and xUnit
-public class MyRepoTests
-{
-    private readonly Mock<MyDbContext> _mockContext;
-    private readonly Mock<DbSet<MyEntity>> _mockSet;
-    private readonly MyRepo _repo;
-
-    public MyRepoTests()
-    {
-        _mockContext = new Mock<MyDbContext>();
-        _mockSet = new Mock<DbSet<MyEntity>>();
-        _repo = new MyRepo(_mockContext.Object);
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_ReturnsEntity_WhenEntityExists()
-    {
-        // Arrange
-        var entity = new MyEntity { Id = 1 };
-        _mockSet.Setup(m => m.FindAsync(1)).ReturnsAsync(entity);
-        _mockContext.Setup(c => c.MyEntities).Returns(_mockSet.Object);
-
-        // Act
-        var result = await _repo.GetByIdAsync(1);
-
-        // Assert
-        Assert.Equal(entity, result);
-    }
-
-    // Other test methods...
 }
