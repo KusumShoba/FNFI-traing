@@ -1,100 +1,231 @@
 using InsuranceApi.Data;
 using InsuranceApi.DTOs;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+using InsuranceApi.Services;
+using Microsoft.EntityFrameworkCore;
+using Moq;
+using System.Net.Sockets;
+
+namespace InsuranceTestMock
+{
+    [TestClass]
+    public class PolicyHolderServiceTest
+    {
+        private Mock<DbSet<PolicyHolder>> _mockDbSet;
+        private Mock<FnfProjectContext> _mockContext;
+        private PolicyHolderService _service;
+
+        [TestInitialize]
+        public void SetUp()
+        {
+            _mockDbSet = new Mock<DbSet<PolicyHolder>>();
+            var data = new List<PolicyHolder>
+            {
+                new PolicyHolder { PolicyHolderId = 1, Name = "John Doe", Address = "123 Main St", Email = "john@example.com", PasswordHash = "hash", Phone = "1234567890", Status = 1 },
+                new PolicyHolder { PolicyHolderId = 2, Name = "Jane Doe", Address = "456 Elm St", Email = "jane@example.com", PasswordHash = "hash", Phone = "0987654321", Status = 0 }
+            }.AsQueryable();
+
+            // Set up the _mockDbSet to behave like a DbSet
+            _mockDbSet.As<IQueryable<PolicyHolder>>().Setup(m => m.Provider).Returns(data.Provider);
+            _mockDbSet.As<IQueryable<PolicyHolder>>().Setup(m => m.Expression).Returns(data.Expression);
+            _mockDbSet.As<IQueryable<PolicyHolder>>().Setup(m => m.ElementType).Returns(data.ElementType);
+            _mockDbSet.As<IQueryable<PolicyHolder>>().Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
+
+            _mockContext = new Mock<FnfProjectContext>();
+            _mockContext.Setup(c => c.PolicyHolders).Returns(_mockDbSet.Object);
+            
+            //_mockDbSet.Setup(set => set.FirstOrDefault(It.IsAny<PolicyHolder>())).Returns((int id) => data.FirstOrDefault(d => d.PolicyHolderId == id));
+            //_mockDbSet.Setup(m => m.FindAsync(It.IsAny<int>())).ReturnsAsync((int id) => data.FirstOrDefault(p => p.PolicyHolderId == id));
+
+
+        }
+        [TestMethod]
+        public async Task ShouldGetAllPolicies()
+        {
+            //Arrange
+            _service = new PolicyHolderService(_mockContext.Object);
+
+            //Act
+            var data = await _service.GetAll();
+
+            //Assert
+            Assert.AreEqual(2, data.Count);
+        }
+
+        [TestMethod]
+        public async Task ShouldGetPolicyById()
+        {
+        // Arrange
+        _service = new PolicyHolderService(_mockContext.Object);
+
+        // Act
+        //var policyHolderId = 1;
+        var result = await _service.GetById(1);
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual(1, result.PolicyHolderId);
+    }
+
+        [TestMethod]
+        public async Task ShouldAddPolicyHolder()
+        {
+            // Arrange
+            _service = new PolicyHolderService(_mockContext.Object);
+            var newPolicyHolder = new PolicyHolderDto { PolicyHolderId = 3, Name = "Alice Smith", Address = "789 Maple Ave", Email = "alice@example.com", PasswordHash = "newhash", Phone = "1122334455", Status = 1 };
+
+            // Act
+            await _service.Add(newPolicyHolder);
+
+            // Assert
+            //_mockDbSet.Verify(m => m.Add(It.Is<PolicyHolder>(p => p == newPolicyHolder)), Times.Once);
+            _mockContext.Verify(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task ShouldUpdatePolicyHolder()
+        {
+            // Arrange
+            _service = new PolicyHolderService(_mockContext.Object);
+            var existingPolicyHolder = new PolicyHolderDto { PolicyHolderId = 1, Name = "John Doe Updated", Address = "123 Main St", Email = "john@example.com", PasswordHash = "newhash", Phone = "1234567890", Status = 1 };
+
+            // Act
+            await _service.Update(existingPolicyHolder);
+
+            // Assert
+            //_mockDbSet.Verify(m => m.Update(It.Is<PolicyHolder>(p => p == existingPolicyHolder)), Times.Once);
+            _mockContext.Verify(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+
+
+        [TestMethod]
+        public async Task ShouldDeletePolicyHolder()
+        {
+            // Arrange
+            _service = new PolicyHolderService(_mockContext.Object);
+            var policyHolderId = 1;
+            var existingPolicyHolder = new PolicyHolder { PolicyHolderId = policyHolderId };
+
+            _mockDbSet.Setup(m => m.FindAsync(policyHolderId)).ReturnsAsync(existingPolicyHolder);
+
+            // Act
+            await _service.Delete(policyHolderId);
+
+            // Assert
+            _mockDbSet.Verify(m => m.Remove(It.Is<PolicyHolder>(p => p.PolicyHolderId == policyHolderId)), Times.Once);
+            _mockContext.Verify(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+
+
+    }
+}
+
+using InsuranceApi.Data;
+using InsuranceApi.DTOs;
 using Microsoft.EntityFrameworkCore;
 
 namespace InsuranceApi.Services
 {
-    public interface IAdminService
+    public interface IPolicyHolderService
     {
-        Task Add(AdminDto adminDto);
+        Task Add(PolicyHolderDto policyHolderDto);
         Task Delete(int id);
-        Task<List<AdminDto>> GetAll();
-        Task<AdminDto> GetById(int id);
-        Task Update(AdminDto adminDto);
+        Task<List<PolicyHolderDto>> GetAll();
+        Task<PolicyHolderDto> GetById(int id);
+        Task Update(PolicyHolderDto policyHolderDto);
     }
 
-    public class AdminService : IAdminService
+    public class PolicyHolderService : IPolicyHolderService
     {
         private readonly FnfProjectContext context;
-        public AdminService(FnfProjectContext context)
+
+        public PolicyHolderService(FnfProjectContext context)
         {
             this.context = context;
         }
 
-        public async Task<List<AdminDto>> GetAll()
+        public async Task<List<PolicyHolderDto>> GetAll()
         {
-            List<AdminDto> adminDtos = new List<AdminDto>();
-            await foreach (var adminTable in context.Admins)
+            List<PolicyHolderDto> policyHolderDtos = [];
+            foreach (var policyHolderTable in context.PolicyHolders)
             {
-                AdminDto adminDto = ConvertToDto(adminTable);
-                adminDtos.Add(adminDto);
+                var policyHolderDto = ConvertToDto(policyHolderTable);
+                policyHolderDtos.Add(policyHolderDto);
             }
-            return adminDtos;
+            return policyHolderDtos;
         }
 
         public async Task Delete(int id)
         {
-            var found = await context.Admins.FirstOrDefaultAsync((adminTable) => adminTable.AdminId == id);
+            var found =  context.PolicyHolders.FirstOrDefault((policyHolderTable) =>
+                policyHolderTable.PolicyHolderId == id);
             if (found != null)
             {
-                context.Admins.Remove(found);
+                context.PolicyHolders.Remove(found);
                 await context.SaveChangesAsync();
                 return;
             }
             throw new NullReferenceException();
         }
 
-        public async Task Add(AdminDto adminDto)
+        public async Task Add(PolicyHolderDto policyHolderDto)
         {
-            Admin adminTable = new Admin();
-            ConvertToTable(adminDto, adminTable);
-            context.Admins.Add(adminTable);
+            PolicyHolder policyHolderTable = new();
+            ConvertToTable(policyHolderDto, policyHolderTable);
+            context.PolicyHolders.Add(policyHolderTable);
             await context.SaveChangesAsync();
             return;
         }
 
-        public async Task Update(AdminDto adminDto)
+        public async Task Update(PolicyHolderDto policyHolderDto)
         {
-            var found = await context.Admins.FirstOrDefaultAsync((adminTable) =>
-                adminTable.AdminId == adminDto.AdminId);
+            var found =  context.PolicyHolders.FirstOrDefault((policyHolderTable) =>
+                policyHolderTable.PolicyHolderId == policyHolderDto.PolicyHolderId);
             if (found != null)
             {
-                ConvertToTable(adminDto, found);
+                ConvertToTable(policyHolderDto, found);
                 await context.SaveChangesAsync();
                 return;
             }
             throw new NullReferenceException();
         }
 
-        public async Task<AdminDto> GetById(int id)
+        public async Task<PolicyHolderDto> GetById(int id)
         {
-            var found = await context.Admins.FirstOrDefaultAsync((adminTable) => adminTable.AdminId == id);
+            var found =   context.PolicyHolders.FirstOrDefault((policyHolderTable) =>
+                policyHolderTable.PolicyHolderId == id);
+
             if (found != null)
-            {
-                var adminDto = ConvertToDto(found);
-                return adminDto;
-            }
+                return ConvertToDto(found);
+
             throw new NullReferenceException();
         }
 
-        private AdminDto ConvertToDto(Admin adminTable)
+        private PolicyHolderDto ConvertToDto(PolicyHolder policyHolderTable)
         {
-            AdminDto adminDto = new()
+            PolicyHolderDto policyHolderDto = new()
             {
-                AdminId = adminTable.AdminId,
-                Name = adminTable.Name,
-                PasswordHash = adminTable.PasswordHash,
+                PolicyHolderId = policyHolderTable.PolicyHolderId,
+                Name = policyHolderTable.Name,
+                Address = policyHolderTable.Address,
+                Email = policyHolderTable.Email,
+                PasswordHash = policyHolderTable.PasswordHash,
+                Phone = policyHolderTable.Phone,
+                Status = policyHolderTable.Status,
             };
-            return adminDto;
+            return policyHolderDto;
         }
 
-        private void ConvertToTable(AdminDto adminDto, Admin adminTable)
+        private void ConvertToTable(PolicyHolderDto policyHolderDto, PolicyHolder policyHolderTable)
         {
-            adminTable.AdminId = adminDto.AdminId;
-            adminTable.Name = adminDto.Name;
-            adminTable.PasswordHash = adminDto.PasswordHash;
+            policyHolderTable.PolicyHolderId = policyHolderDto.PolicyHolderId;
+            policyHolderTable.Name = policyHolderDto.Name;
+            policyHolderTable.Address = policyHolderDto.Address;
+            policyHolderTable.Email = policyHolderDto.Email;
+            policyHolderTable.PasswordHash = policyHolderDto.PasswordHash;
+            policyHolderTable.Phone = policyHolderDto.Phone;
+            policyHolderTable.Status = policyHolderDto.Status;
             return;
         }
     }
