@@ -36,8 +36,8 @@ namespace InsuranceTestMock
         public async Task ShouldGetAllPolicies()
         {
             //Arrange
-            _service = new PolicyHolderService(_mockContext.Object); 
-            
+            _service = new PolicyHolderService(_mockContext.Object);
+
             //Act
             var data = await _service.GetAll();
 
