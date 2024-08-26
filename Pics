@@ -1,4 +1,23 @@
-@page "/claimstatus"
+namespace InsuranceApi.DTOs
+{
+    public class ClaimDto
+    {
+        public int ClaimId { get; set; }
+        public int InsuredPolicyId { get; set; }
+        public int PolicyHolderId { get; set; }
+        public DateTime ClaimDate { get; set; }
+        public decimal ClaimAmount { get; set; }
+        public string ClaimStatus { get; set; } = null!;
+        public decimal? DispenseAmount { get; set; }
+        public string DocumentType { get; set; } = null!;
+        public string DocumentPath { get; set; } = null!;
+        public int HospitalId { get; set; }
+    }
+}
+
+
+
+@page "/claimstatus/{policyHolderId:int}"
 @using ClientApp.Services
 @using InsuranceApi.DTOs
 
@@ -47,85 +66,23 @@ else
 }
 
 @code {
-    // [Parameter]
-    // public int policyHolderId { get; set; }
+    [Parameter]
+    public int policyHolderId { get; set; }
 
     private List<ClaimDto> claims;
 
     protected override async Task OnInitializedAsync()
     {
-        claims = await ClaimService.GetClaimsByPolicyHolderIdAsync();
+        claims = await ClaimService.GetClaimsByPolicyHolderIdAsync(policyHolderId);
     }
 }
 
 
 
-<div>
-    <style>
-        /* Table Styling */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            font-size: 1em;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-width: 400px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-            background-color: #f9f9f9;
-        }
 
-        /* Header Styling */
-        thead tr {
-            background-color: #009879;
-            color: #ffffff;
-            text-align: left;
-            font-weight: bold;
-        }
-
-        /* Row Styling */
-        tbody tr {
-            border-bottom: 1px solid #dddddd;
-        }
-
-            tbody tr:nth-of-type(even) {
-                background-color: #f3f3f3;
-            }
-
-            tbody tr:last-of-type {
-                border-bottom: 2px solid #009879;
-            }
-
-        /* Sticky Header */
-        th {
-            position: sticky;
-            top: 0;
-            background-color: #009879;
-            color: #ffffff;
-            z-index: 2;
-        }
-
-        /* Cell Padding */
-        th, td {
-            padding: 12px 15px;
-        }
-
-        /* Responsive Table Wrapper */
-        .table-wrapper {
-            overflow-x: auto;
-        }
-
-        /* Hover Effects */
-        tbody tr:hover {
-            background-color: #f1f1f1;
-        }
-
-        /* Caption Styling */
-        caption {
-            caption-side: bottom;
-            font-style: italic;
-            text-align: right;
-            margin-top: 10px;
-        }
-    </style>
-</div>
-
+Error:
+Microsoft.AspNetCore.Components.WebAssembly.Rendering.WebAssemblyRenderer[100]
+      Unhandled exception rendering component: The JSON value could not be converted to System.Collections.Generic.List`1[InsuranceApi.DTOs.ClaimDto]. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
+System.Text.Json.JsonException: The JSON value could not be converted to System.Collections.Generic.List`1[InsuranceApi.DTOs.ClaimDto]. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
+   at System.Text.Json.ThrowHelper.ThrowJsonException_DeserializeUnableToConvertValue(Type propertyType)
+   at System.Text.Json.Serialization.JsonCollectionConverter`2[[System.Collections.Generic.List`1[[InsuranceApi.DTOs.ClaimDto, SharedModels, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[InsuranceApi.DTOs.ClaimDto, SharedModels, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]].OnTryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, List`1& value)
