@@ -1,70 +1,87 @@
-@page "/Claim/{policyHolderId:int}"
-@using ClientApp.Services
-@using InsuranceApi.DTOs
+using InsuranceApi.DTOs;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Text.Json;
 
-@inject IClaimDtoService ClaimService
-
-<h3>Claim Status</h3>
-
-@if (claim == null)
+namespace ClientApp.Services
 {
-    <p>Loading claims...</p>
-}
-@* else if (!claims.Any())
-{
-    <p>No claims found for the specified policy holder.</p>
-} *@
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ClaimId</th>
-                <th>Insurance ID</th>
-                <th>Policy Holder ID</th>
-                <th>Claim Date</th>
-                <th>Claim Amount</th>
-                <th>Claim Status</th>
-                <th>Dispense Amount</th>
-                <th>Dispense Type</th>
-                <th>Dispense Path</th>
-                <th>Hospital ID</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                    <td>@claim.ClaimId</td>
-                    <td>@claim.InsuredPolicyId</td>
-                    <td>@claim.PolicyHolderId</td>
-                    <td>@claim.ClaimDate.ToShortDateString()</td>
-                    <td>@claim.ClaimAmount</td>
-                    <td>@claim.ClaimStatus</td>
-                    <td>@claim.DispenseAmount</td>
-                    <td>@claim.DocumentType</td>
-                    <td>@claim.DocumentPath</td>
-                    <td>@claim.HospitalId</td>
-                </tr>
-        </tbody>
-    </table>
-}
-
-@code {
-    [Parameter]
-    public int policyHolderId { get; set; }
-
-    private ClaimDto claim;
-
-
-    protected override async Task OnInitializedAsync()
+    public interface IClaimDtoService
     {
-        try
+        Task Add(ClaimDto employee);
+        Task DeleteById(int id);
+        Task<List<ClaimDto>> GetAll();
+        Task<ClaimDto> GetById(int id);
+        Task Update(ClaimDto employee);
+        Task<ClaimDto> GetClaimsByPolicyHolderIdAsync(int policyHolderId);
+
+        //Task<string> GetClaimsByPolicyHolderIdAsync(int policyHolderId);
+    }
+
+    public class ClaimDtoService : IClaimDtoService
+    {
+        private readonly HttpClient _httpClient;
+
+        public ClaimDtoService(HttpClient httpClient)
         {
-            claim = await ClaimService.GetClaimsByPolicyHolderIdAsync(policyHolderId);
-            // Console.WriteLine($"Claims loaded{claims.Count}");
+            _httpClient = httpClient;
         }
-        catch (Exception ex)
+
+        //public async Task<string> GetClaimsByPolicyHolderIdAsync(int policyHolderId)
+        //{
+
+
+        //    var response = await _httpClient.GetAsync($"Claim/{policyHolderId}");
+        //    var json = await response.Content.ReadAsStringAsync();
+
+        //    return json;
+
+        //}
+
+
+        public async Task<ClaimDto> GetClaimsByPolicyHolderIdAsync(int policyHolderId)
         {
-            Console.WriteLine($"Error fetching claims: {ex.Message}");
+            var response = await _httpClient.GetAsync($"Claim/{policyHolderId}");
+            response.EnsureSuccessStatusCode();
+            var json = await response.Content.ReadAsStringAsync();
+            var claimsRes = JsonSerializer.Deserialize<ClaimDto>(json, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+            Console.WriteLine($"Fetched {claimsRes}");
+            return claimsRes;
+
+            
+        }
+
+
+
+
+        public async Task Add(ClaimDto employee)
+        {
+            await _httpClient.PostAsJsonAsync("Claim", employee);
+        }
+
+        public async Task DeleteById(int id)
+        {
+            await _httpClient.DeleteAsync($"Claim/{id}");
+        }
+
+        public async Task<List<ClaimDto>> GetAll()
+        {
+            return await _httpClient.GetFromJsonAsync<List<ClaimDto>>("Claim");
+        }
+
+        public async Task<ClaimDto> GetById(int id)
+        {
+            return await _httpClient.GetFromJsonAsync<ClaimDto>($"Claim/{id}");
+        }
+
+        public async Task Update(ClaimDto employee)
+        {
+            await _httpClient.PutAsJsonAsync("Claim", employee);
         }
     }
 }
+
