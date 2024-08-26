@@ -1,34 +1,268 @@
-Test.cs
-public void Delete_ExistingId_DeletesAdmin()
+AdminService.cs
+using InsuranceApi.Data;
+using InsuranceApi.DTOs;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace InsuranceApi.Services
 {
-    // Act
-    _adminService.Delete(1);
-
-    // Assert
-    var exception = Assert.ThrowsException<NullReferenceException>(() => _adminService.GetById(1).Result);
-    Assert.AreEqual("No record found.", exception.Message);
-}
-
-
-
-Service.cs
-public void Delete(int id)
-{
-    var found =  context.Admins.FirstOrDefault((adminTable) => adminTable.AdminId == id);
-    if (found != null)
+    public interface IAdminService
     {
-        context.Admins.Remove(found);
-         context.SaveChanges();
-        return;
+        Task Add(AdminDto adminDto);
+        Task Delete(int id);
+        List<AdminDto> GetAll();
+        Task<AdminDto> GetById(int id);
+        Task Update(AdminDto adminDto);
     }
-    throw new NullReferenceException();
+
+    public class AdminService : IAdminService
+    {
+        private readonly FnfProjectContext context;
+        public AdminService(FnfProjectContext context)
+        {
+            this.context = context;
+        }
+
+        public List<AdminDto> GetAll()
+        {
+            var adminTables =  context.Admins.ToList();
+            return adminTables.Select(adminTable => ConvertToDto(adminTable)).ToList();
+        }
+
+
+        public void Delete(int id)
+        {
+            var found =  context.Admins.FirstOrDefault((adminTable) => adminTable.AdminId == id);
+            if (found != null)
+            {
+                context.Admins.Remove(found);
+                 context.SaveChanges();
+                return;
+            }
+            throw new NullReferenceException("No record found.");
+        }
+
+        public async Task Add(AdminDto adminDto)
+        {
+            Admin adminTable = new Admin();
+            ConvertToTable(adminDto, adminTable);
+            context.Admins.Add(adminTable);
+            await context.SaveChangesAsync();
+            return;
+        }
+
+        public async Task Update(AdminDto adminDto)
+        {
+            var found = await context.Admins.FirstOrDefaultAsync((adminTable) =>
+                adminTable.AdminId == adminDto.AdminId);
+            if (found != null)
+            {
+                ConvertToTable(adminDto, found);
+                await context.SaveChangesAsync();
+                return;
+            }
+            throw new NullReferenceException();
+        }
+
+        public async Task<AdminDto> GetById(int id)
+        {
+            var found = await context.Admins.FirstOrDefaultAsync((adminTable) => adminTable.AdminId == id);
+            if (found != null)
+            {
+                var adminDto = ConvertToDto(found);
+                return adminDto;
+            }
+            throw new NullReferenceException();
+        }
+
+        private AdminDto ConvertToDto(Admin adminTable)
+        {
+            AdminDto adminDto = new()
+            {
+                AdminId = adminTable.AdminId,
+                Name = adminTable.Name,
+                PasswordHash = adminTable.PasswordHash,
+            };
+            return adminDto;
+        }
+
+        private void ConvertToTable(AdminDto adminDto, Admin adminTable)
+        {
+            adminTable.AdminId = adminDto.AdminId;
+            adminTable.Name = adminDto.Name;
+            adminTable.PasswordHash = adminDto.PasswordHash;
+            return;
+        }
+    }
 }
 
+
+
+AdminDto.cs
+namespace InsuranceApi.DTOs
+{
+    public class AdminDto
+    {
+        public int AdminId { get; set; }
+
+        public string Name { get; set; } = null!;
+
+        public string PasswordHash { get; set; } = null!;
+    }
+}
+
+
+
+AdminServiceTest.cs
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using Microsoft.EntityFrameworkCore;
+using InsuranceApi.Data;
+using InsuranceApi.DTOs;
+using InsuranceApi.Services;
+
+
+namespace InsuranceTestMock
+{
+    [TestClass]
+    public class AdminServiceTests
+    {
+        private Mock<FnfProjectContext> _mockContext;
+        private AdminService _adminService;
+        private List<Admin> _adminData;
+
+        [TestInitialize]
+        public void Setup()
+        {
+            _adminData = new List<Admin>
+        {
+            new Admin { AdminId = 1, Name = "Admin1", PasswordHash = "Hash1" },
+            new Admin { AdminId = 2, Name = "Admin2", PasswordHash = "Hash2" }
+        };
+
+            var dbSet = new Mock<DbSet<Admin>>();
+            dbSet.As<IQueryable<Admin>>().Setup(m => m.Provider).Returns(_adminData.AsQueryable().Provider);
+            dbSet.As<IQueryable<Admin>>().Setup(m => m.Expression).Returns(_adminData.AsQueryable().Expression);
+            dbSet.As<IQueryable<Admin>>().Setup(m => m.ElementType).Returns(_adminData.AsQueryable().ElementType);
+            dbSet.As<IQueryable<Admin>>().Setup(m => m.GetEnumerator()).Returns(_adminData.GetEnumerator());
+
+            dbSet.Setup(d => d.Add(It.IsAny<Admin>())).Callback<Admin>(a => _adminData.Add(a));
+            dbSet.Setup(d => d.Remove(It.IsAny<Admin>())).Callback<Admin>(a => _adminData.Remove(a));
+
+            _mockContext = new Mock<FnfProjectContext>();
+            _mockContext.Setup(c => c.Admins).Returns(dbSet.Object);
+
+        }
+
+        [TestMethod]
+        public void GetAll_ReturnsAllAdmins()
+        {
+            _adminService = new AdminService(_mockContext.Object);
+            // Act
+            var result = _adminService.GetAll();
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual(2, result.Count);
+            Assert.AreEqual("Admin1", result[0].Name);
+            //Assert.AreEqual("Admin2", result[1].Name);
+        }
+
+        [TestMethod]
+        public void GetById_ExistingId_ReturnsAdmin()
+        {
+            // Act
+            var result = _adminService.GetById(1).Result;
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual("Admin1", result.Name);
+        }
+
+        [TestMethod]
+        public void GetById_NonExistingId_ThrowsException()
+        {
+            // Act & Assert
+            var exception = Assert.ThrowsException<NullReferenceException>(() => _adminService.GetById(99).Result);
+            Assert.AreEqual("No record found.", exception.Message);
+        }
+
+        [TestMethod]
+        public void Add_ValidAdmin_AddsAdmin()
+        {
+            // Arrange
+            var newAdminDto = new AdminDto { AdminId = 3, Name = "Admin3", PasswordHash = "Hash3" };
+
+            // Act
+            _adminService.Add(newAdminDto).Wait();
+
+            // Assert
+            var result = _adminService.GetById(3).Result;
+            Assert.IsNotNull(result);
+            Assert.AreEqual("Admin3", result.Name);
+        }
+
+        [TestMethod]
+        public void Update_ExistingAdmin_UpdatesAdmin()
+        {
+            // Arrange
+            var updatedAdminDto = new AdminDto { AdminId = 1, Name = "UpdatedAdmin1", PasswordHash = "UpdatedHash1" };
+
+            // Act
+            _adminService.Update(updatedAdminDto).Wait();
+
+            // Assert
+            var result = _adminService.GetById(1).Result;
+            Assert.IsNotNull(result);
+            Assert.AreEqual("UpdatedAdmin1", result.Name);
+        }
+
+        [TestMethod]
+        public void Update_NonExistingAdmin_ThrowsException()
+        {
+            // Arrange
+            var updatedAdminDto = new AdminDto { AdminId = 99, Name = "NonExistingAdmin", PasswordHash = "NonExistingHash" };
+
+            // Act & Assert
+            //var exception = Assert.ThrowsException<NullReferenceException>(() => _adminService.Update(updatedAdminDto).Result);
+            //Assert.AreEqual("No record found.", exception.Message);
+        }
+
+        [TestMethod]
+        public void Delete_ExistingId_DeletesAdmin()
+        {
+            //Arrange
+            _adminService = new AdminService(_mockContext.Object);
+
+            // Act
+            _adminService.Delete(1);
+
+            // Assert
+            var exception = Assert.ThrowsException<NullReferenceException>(() => _adminService.GetById(1));
+            Assert.AreEqual("No record found.", exception.Message);
+        }
+
+        [TestMethod]
+        public void Delete_NonExistingId_ThrowsException()
+        {
+            // Act & Assert
+            //var exception = Assert.ThrowsException<NullReferenceException>(() => _adminService.Delete(99).Result);
+            //Assert.AreEqual("No record found.", exception.Message);
+        }
+    }
+}
 
 
 Error:
-Message: 
-  Test method InsuranceTestMock.AdminServiceTests.Delete_ExistingId_DeletesAdmin threw exception: 
-  System.NullReferenceException: Object reference not set to an instance of an object.
+Delete_ExistingId_DeletesAdmin
+   Source: AdminServiceTest.cs line 119
+   Duration: 118 ms
 
- 
+  Message: 
+Test method InsuranceTestMock.AdminServiceTests.Delete_ExistingId_DeletesAdmin threw exception: 
+System.NullReferenceException: Object reference not set to an instance of an object.
