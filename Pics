@@ -1,23 +1,4 @@
-namespace InsuranceApi.DTOs
-{
-    public class ClaimDto
-    {
-        public int ClaimId { get; set; }
-        public int InsuredPolicyId { get; set; }
-        public int PolicyHolderId { get; set; }
-        public DateTime ClaimDate { get; set; }
-        public decimal ClaimAmount { get; set; }
-        public string ClaimStatus { get; set; } = null!;
-        public decimal? DispenseAmount { get; set; }
-        public string DocumentType { get; set; } = null!;
-        public string DocumentPath { get; set; } = null!;
-        public int HospitalId { get; set; }
-    }
-}
-
-
-
-@page "/claimstatus/{policyHolderId:int}"
+@page "/Claim/{policyHolderId:int}"
 @using ClientApp.Services
 @using InsuranceApi.DTOs
 
@@ -25,19 +6,20 @@ namespace InsuranceApi.DTOs
 
 <h3>Claim Status</h3>
 
-@if (claims == null)
+@if (claim == null)
 {
     <p>Loading claims...</p>
 }
-else if (!claims.Any())
+@* else if (!claims.Any())
 {
     <p>No claims found for the specified policy holder.</p>
-}
+} *@
 else
 {
     <table class="table">
         <thead>
             <tr>
+                <th>ClaimId</th>
                 <th>Insurance ID</th>
                 <th>Policy Holder ID</th>
                 <th>Claim Date</th>
@@ -50,17 +32,18 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var claim in claims)
-            {
-                <tr>
+            <tr>
+                    <td>@claim.ClaimId</td>
+                    <td>@claim.InsuredPolicyId</td>
                     <td>@claim.PolicyHolderId</td>
                     <td>@claim.ClaimDate.ToShortDateString()</td>
                     <td>@claim.ClaimAmount</td>
                     <td>@claim.ClaimStatus</td>
                     <td>@claim.DispenseAmount</td>
+                    <td>@claim.DocumentType</td>
+                    <td>@claim.DocumentPath</td>
                     <td>@claim.HospitalId</td>
                 </tr>
-            }
         </tbody>
     </table>
 }
@@ -69,20 +52,19 @@ else
     [Parameter]
     public int policyHolderId { get; set; }
 
-    private List<ClaimDto> claims;
+    private ClaimDto claim;
+
 
     protected override async Task OnInitializedAsync()
     {
-        claims = await ClaimService.GetClaimsByPolicyHolderIdAsync(policyHolderId);
+        try
+        {
+            claim = await ClaimService.GetClaimsByPolicyHolderIdAsync(policyHolderId);
+            // Console.WriteLine($"Claims loaded{claims.Count}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching claims: {ex.Message}");
+        }
     }
 }
-
-
-
-
-Error:
-Microsoft.AspNetCore.Components.WebAssembly.Rendering.WebAssemblyRenderer[100]
-      Unhandled exception rendering component: The JSON value could not be converted to System.Collections.Generic.List`1[InsuranceApi.DTOs.ClaimDto]. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
-System.Text.Json.JsonException: The JSON value could not be converted to System.Collections.Generic.List`1[InsuranceApi.DTOs.ClaimDto]. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
-   at System.Text.Json.ThrowHelper.ThrowJsonException_DeserializeUnableToConvertValue(Type propertyType)
-   at System.Text.Json.Serialization.JsonCollectionConverter`2[[System.Collections.Generic.List`1[[InsuranceApi.DTOs.ClaimDto, SharedModels, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[InsuranceApi.DTOs.ClaimDto, SharedModels, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]].OnTryRead(Utf8JsonReader& reader, Type typeToConvert, JsonSerializerOptions options, ReadStack& state, List`1& value)
