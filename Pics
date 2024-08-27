@@ -55,3 +55,173 @@ namespace ClientApp.Services
         }
     }
 }
+
+namespace InsuranceApi.DTOs
+{
+	public class InsuredDto
+	{
+		public int InsuredId { get; set; }
+		public int PolicyHolderId { get; set; }
+		public string Name { get; set; } = null!;
+		public DateTime Dob { get; set; }
+		public string Gender { get; set; } = null!;
+		public DateTime RegistrationDate { get; set; } = DateTime.Now;
+	}
+}
+
+
+namespace InsuranceApi.DTOs
+{
+    public class InsuranceTypeDto
+    {
+        public int InsuranceId { get; set; }
+        public string InsuranceType { get; set; } = null!;
+        public string Description { get; set; } = null!;
+        public decimal? BaseRate { get; set; }
+        public int? CoverageSize { get; set; }
+    }
+}
+
+
+using InsuranceApi.DTOs;
+using System.Net.Http;
+using System.Net.Http.Json;
+namespace ClientApp.Services
+{
+    public interface IInsuredDtoService
+    {
+        Task Add(InsuredDto employee);
+        Task DeleteById(int id);
+        Task<List<InsuredDto>> GetAll();
+        Task<InsuredDto> GetById(int id);
+        Task Update(InsuredDto employee);
+    }
+
+    public class InsuredDtoService : IInsuredDtoService
+    {
+        private readonly HttpClient httpClient;
+        public InsuredDtoService(HttpClient httpClient)
+        {
+            this.httpClient = httpClient;
+        }
+
+        public async Task<List<InsuredDto>> GetAll()
+        {
+            return await httpClient.GetFromJsonAsync<List<InsuredDto>>("Insured");
+        }
+
+        public async Task<InsuredDto> GetById(int id)
+        {
+            return await httpClient.GetFromJsonAsync<InsuredDto>($"Insured/{id}");
+        }
+
+        public async Task Add(InsuredDto employee)
+        {
+            await httpClient.PostAsJsonAsync<InsuredDto>("Insured", employee);
+        }
+
+        public async Task DeleteById(int id)
+        {
+            await httpClient.DeleteAsync($"Insured/{id}");
+        }
+
+        public async Task Update(InsuredDto employee)
+        {
+            await httpClient.PutAsJsonAsync<InsuredDto>("Insured", employee);
+        }
+    }
+}
+@page "/Claim/{policyHolderId:int}"
+@using ClientApp.Services
+@using InsuranceApi.DTOs
+
+@inject IClaimDtoService ClaimService
+
+@inject IInsuredDtoService InsuredService
+@inject IInsuranceTypeDtoService InsuranceTypeService
+
+
+
+<h3>Claim Status</h3>
+
+@if (claim == null)
+{
+    <p>Loading claims...</p>
+}
+
+@*  else if (!claim.Any())
+{
+    <p>No claims found for the specified policy holder.</p>
+} 
+ *@
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ClaimId</th>
+                <th>Insurance ID</th>
+                <th>Policy Holder ID</th>
+                <th>Claim Date</th>
+                <th>Claim Amount</th>
+                <th>Claim Status</th>
+                <th>Dispense Amount</th>
+                <th>Dispense Type</th>
+                <th>Dispense Path</th>
+                <th>Hospital ID</th>
+                <td>Insurance Name</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                    <td>@claim.ClaimId</td>
+                    <td>@claim.InsuredPolicyId</td>
+                    <td>@claim.PolicyHolderId</td>
+                    <td>@claim.ClaimDate.ToShortDateString()</td>
+                    <td>@claim.ClaimAmount</td>
+                    <td>@claim.ClaimStatus</td>
+                    <td>@claim.DispenseAmount</td>
+                    <td>@claim.DocumentType</td>
+                    <td>@claim.DocumentPath</td>
+                    <td>@claim.HospitalId</td>
+                    <td>@insuranceName</td>
+                </tr>
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter]
+    public int policyHolderId { get; set; }
+
+    private ClaimDto claim;
+    private string insuranceName;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            claim = await ClaimService.GetClaimsByPolicyHolderIdAsync(policyHolderId);
+            if (claim != null)
+            {
+                // Fetch insured details
+                var insured = await InsuredService.GetById(claim.InsuredPolicyId);
+
+                if (insured != null)
+                {
+                    // Fetch insurance type details
+                    var insuranceType = await InsuranceTypeService.GetById(insured.InsuredId);
+                    insuranceName = insuranceType?.Description;
+                }
+            }
+
+        }
+    catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching claims: {ex.Message}");
+        }
+    }
+}
+
+
