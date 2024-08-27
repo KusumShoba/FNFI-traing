@@ -1,13 +1,14 @@
 @page "/Claim/{policyHolderId:int}"
 @using ClientApp.Services
 @using InsuranceApi.DTOs
-@using PolicyDbService.Services
+
 
 @inject IClaimDtoService ClaimService
 
 @inject IInsuredDtoService InsuredService
 
-@inject IPolicyService PolicyService
+@inject IPolicyDtoService PolicyService
+@inject IInsuranceTypeDtoService InsuranceTypeService
 
 
 
@@ -34,7 +35,8 @@ else
                 <th>Dispense Type</th>
                 <th>Dispense Path</th>
                 <th>Hospital ID</th>
-                <td>Insurance Name</td>
+                <td>Name</td>
+                <td>Plan</td>
             </tr>
         </thead>
         <tbody>
@@ -50,6 +52,7 @@ else
                     <td>@claim.DocumentPath</td>
                     <td>@claim.HospitalId</td>
                 <td>@isuredperson</td>
+                <td>@insuranceName</td>
                 </tr>
         </tbody>
     </table>
@@ -69,13 +72,46 @@ else
         try
         {
             claim = await ClaimService.GetClaimsByPolicyHolderIdAsync(policyHolderId);
-            
+
             if (claim != null)
             {
                 // Fetch insured details
                 var insured = await InsuredService.GetById(policyHolderId);
-                 isuredperson = insured.Name;
+                isuredperson = insured.Name;
+
+
+                var insuredPolicy = await PolicyService.GetById(claim.InsuredPolicyId);
+                    if (insuredPolicy != null)
+                    {
+                        // Fetch policy details
+                        var policy = await PolicyService.GetById(insuredPolicy.PolicyId);
+                        if (policy != null)
+                        {
+                            // Fetch insurance type details
+                            var insuranceType = await InsuranceTypeService.GetById(policy.InsuranceTypeId);
+                            insuranceName = insuranceType?.InsuranceType;
+                        }
+                    }
             }
+
+            // if (claim != null)
+            // {
+                
+            //     // Fetch insured policy details
+            //     var insuredPolicy = await PolicyService.GetById(claim.InsuredPolicyId);
+            //     if (insuredPolicy != null)
+            //     {
+            //         // Fetch policy details
+            //         var policy = await PolicyService.GetById(insuredPolicy.PolicyId);
+            //         if (policy != null)
+            //         {
+            //             // Fetch insurance type details
+            //             var insuranceType = await InsuranceTypeService.GetById(policy.InsuranceTypeId);
+            //             insuranceName = insuranceType?.InsuranceType;
+            //         }
+            //     }
+            // }
+        
 
         }
     catch (Exception ex)
@@ -84,38 +120,3 @@ else
         }
     }
 }
-
-
-
-
-Take help of Logic:
- <tbody>
-     @if (insuredPolicies != null && insuredPolicies.Any())
-     {
-         var displayedPolicyIds = new HashSet<int>();
-
-         @foreach (var insuredPolicy in insuredPolicies)
-         {
-             var policy = policies.FirstOrDefault(p => p.PolicyId == insuredPolicy.PolicyId);
-
-             if (policy != null && !displayedPolicyIds.Contains(policy.PolicyId))
-             {
-                 displayedPolicyIds.Add(policy.PolicyId); // Mark this policy as displayed
-
-                 var daysLeft = (policy.EndDate - DateTime.Today).Days;
-                 var insuranceType = InsuranceType.FirstOrDefault(it => it.InsuranceId == policy.InsuranceTypeId);
-                 var daysSinceStart = (DateTime.Today - policy.StartDate).Days;
-
-                 <tr class="@GetRowClass(policy.EndDate)">
-                     <td>@insuredPolicy.PolicyId</td>
-                     <td>@insuredPolicy.InsuredPolicyId</td>
-                     <td>@insuranceType?.InsuranceType</td>
-
-
-
-
-I want to connect:-
-1.From Claim Table ==>(take) Insured Policy Id Go to
-2.Insured Policy Table (from Insured Policy Id) ==> (take) Policy Id
-3.Policy Table (from Policy Id) ==> (take) Insurance Type Id
-4.Insurance Type Table (from Policy Id) ==> (take) Name
