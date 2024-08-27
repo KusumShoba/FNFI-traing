@@ -1,137 +1,128 @@
-namespace InsuranceApi.DTOs
+@page "/Claim/{policyHolderId:int}"
+@using ClientApp.Services
+@using InsuranceApi.DTOs
+
+
+@inject IClaimDtoService ClaimService
+
+@inject IInsuredDtoService InsuredService
+
+@inject IPolicyDtoService PolicyService
+@inject IInsuranceTypeDtoService InsuranceTypeService
+
+@inject IInsuredPolicyDtoService InsurancePolicy
+
+
+
+<h3>Claim Status</h3>
+
+@if (claim == null)
 {
-    public class InsuredPolicyDto
+    <p>Loading claims...</p>
+}
+
+
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ClaimId</th>
+                <th>Insurance ID</th>
+                <th>Policy Holder ID</th>
+                <th>Claim Date</th>
+                <th>Claim Amount</th>
+                <th>Claim Status</th>
+                <th>Dispense Amount</th>
+                <th>Dispense Type</th>
+                <th>Dispense Path</th>
+                <th>Hospital ID</th>
+                <td>Name</td>
+                <td>Plan</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                    <td>@claim.ClaimId</td>
+                    <td>@claim.InsuredPolicyId</td>
+                    <td>@claim.PolicyHolderId</td>
+                    <td>@claim.ClaimDate.ToShortDateString()</td>
+                    <td>@claim.ClaimAmount</td>
+                    <td>@claim.ClaimStatus</td>
+                    <td>@claim.DispenseAmount</td>
+                    <td>@claim.DocumentType</td>
+                    <td>@claim.DocumentPath</td>
+                    <td>@claim.HospitalId</td>
+                <td>@isuredperson</td>
+                <td>@insuranceName</td>
+                </tr>
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter]
+    public int policyHolderId { get; set; }
+
+    private ClaimDto claim;
+    private string insuranceName;
+    private string isuredperson;
+
+
+    protected override async Task OnInitializedAsync()
     {
-        public int InsuredPolicyId { get; set; }
-        public int InsuredId { get; set; }
-        public int PolicyId { get; set; }
-        public string ApprovalStatus { get; set; } = null!;
-        public string RenewalStatus { get; set; } = null!;
-        public int AdminId { get; set; }
-        public DateTime? ApprovalDate { get; set; }
+        try
+        {
+            claim = await ClaimService.GetClaimsByPolicyHolderIdAsync(policyHolderId);
+
+            if (claim != null)
+            {
+                // Fetch insured details
+                var insured = await InsuredService.GetById(policyHolderId);
+                isuredperson = insured.Name;
+
+
+                var insuredPolicyId = await InsurancePolicy.GetById(claim.InsuredPolicyId);
+                if (insuredPolicyId != null)
+                {
+                    var policyId = await PolicyService.GetById(insuredPolicyId.PolicyId);
+                    if(policyId!=null)
+                    {
+                        var insuranceType = await InsuranceTypeService.GetById(policyId.InsuranceTypeId);
+                        insuranceName = insuranceType?.InsuranceType;
+                    }
+                }
+            }
+
+            // if (claim != null)
+            // {
+                
+            //     // Fetch insured policy details
+            //     var insuredPolicy = await PolicyService.GetById(claim.InsuredPolicyId);
+            //     if (insuredPolicy != null)
+            //     {
+            //         // Fetch policy details
+            //         var policy = await PolicyService.GetById(insuredPolicy.PolicyId);
+            //         if (policy != null)
+            //         {
+            //             // Fetch insurance type details
+            //             var insuranceType = await InsuranceTypeService.GetById(policy.InsuranceTypeId);
+            //             insuranceName = insuranceType?.InsuranceType;
+            //         }
+            //     }
+            // }
+        
+
+        }
+    catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching claims: {ex.Message}");
+        }
     }
 }
 
 
 
-Create a InsuredPolicyService.cs for above
+Error fetching claims: Response status code does not indicate success: 404 (Not Found).
 
-
-Take reference from below
-
-using InsuranceApi.Data;
-using InsuranceApi.DTOs;
-using Microsoft.EntityFrameworkCore;
-
-namespace InsuranceApi.Services
-{
-    public interface IClaimService
-    {
-        Task Add(ClaimDto claimDto);
-        Task Delete(int id);
-        Task<List<ClaimDto>> GetAll();
-        Task<ClaimDto> GetById(int id);
-        Task Update(ClaimDto claimDto);
-    }
-
-    public class ClaimService : IClaimService
-    {
-        private readonly FnFproject01Context context;
-
-        public ClaimService(FnFproject01Context context)
-        {
-            this.context = context;
-        }
-
-        public async Task<List<ClaimDto>> GetAll()
-        {
-            List<ClaimDto> claimDtos = [];
-            await foreach (var claimTable in context.Claims)
-            {
-                var claimDto = ConvertToDto(claimTable);
-                claimDtos.Add(claimDto);
-            }
-            return claimDtos;
-        }
-
-        public async Task Delete(int id)
-        {
-            var found = await context.Claims.FirstOrDefaultAsync((claimTable) =>
-                claimTable.ClaimId == id);
-            if (found != null)
-            {
-                context.Claims.Remove(found);
-                await context.SaveChangesAsync();
-                return;
-            }
-            throw new NullReferenceException();
-        }
-
-        public async Task Add(ClaimDto claimDto)
-        {
-            Claim claimTable = new();
-            ConvertToTable(claimDto, claimTable);
-            context.Claims.Add(claimTable);
-            await context.SaveChangesAsync();
-            return;
-        }
-
-        public async Task Update(ClaimDto claimDto)
-        {
-            var found = await context.Claims.FirstOrDefaultAsync((claimTable) =>
-                claimTable.ClaimId == claimDto.ClaimId);
-            if (found != null)
-            {
-                ConvertToTable(claimDto, found);
-                await context.SaveChangesAsync();
-                return;
-            }
-            throw new NullReferenceException();
-        }
-
-        public async Task<ClaimDto> GetById(int id)
-        {
-            var found = await context.Claims.FirstOrDefaultAsync((claimTable) =>
-                claimTable.ClaimId == id);
-
-            if (found != null)
-                return ConvertToDto(found);
-
-            throw new NullReferenceException();
-        }
-
-        private ClaimDto ConvertToDto(Claim claimTable)
-        {
-            ClaimDto claimDto = new()
-            {
-                ClaimId = claimTable.ClaimId,
-                PolicyHolderId = claimTable.PolicyHolderId,
-                InsuredPolicyId = claimTable.InsuredPolicyId,
-                ClaimAmount = claimTable.ClaimAmount,
-                ClaimStatus = claimTable.ClaimStatus,
-                DispenseAmount = claimTable.DispenseAmount,
-                DocumentPath = claimTable.DocumentPath,
-                DocumentType = claimTable.DocumentType,
-                HospitalId = claimTable.HospitalId,
-                ClaimDate = DateTime.Parse(claimTable.ClaimDate.ToString()),
-            };
-            return claimDto;
-        }
-
-        private void ConvertToTable(ClaimDto claimDto, Claim claimTable)
-        {
-            claimTable.ClaimId = claimDto.ClaimId;
-            claimTable.PolicyHolderId = claimDto.PolicyHolderId;
-            claimTable.InsuredPolicyId = claimDto.InsuredPolicyId;
-            claimTable.ClaimAmount = claimDto.ClaimAmount;
-            claimTable.ClaimStatus = claimDto.ClaimStatus;
-            claimTable.DispenseAmount = claimDto.DispenseAmount;
-            claimTable.DocumentPath = claimDto.DocumentPath;
-            claimTable.DocumentType = claimDto.DocumentType;
-            claimTable.ClaimDate = DateOnly.FromDateTime(claimDto.ClaimDate);
-            claimTable.HospitalId = claimDto.HospitalId;
-            return;
-        }
-    }
-}
-
+Why are we getting error in console and not getting the data
