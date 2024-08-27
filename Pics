@@ -1,144 +1,13 @@
-using System.Net.Http.Json;
-
-using InsuranceApi.DTOs;
-
-namespace ClientApp.Services
-{
-
-    public interface IInsuranceTypeDtoService
-    {
-        Task Add(InsuranceTypeDto employee);
-        Task DeleteById(int id);
-        Task<List<InsuranceTypeDto>> GetAll();
-        Task<InsuranceTypeDto> GetById(int id);
-        Task<InsuranceTypeDto> GetByName(string Name);
-
-        Task Update(InsuranceTypeDto employee);
-    }
-
-    public class InsuranceTypeDtoService : IInsuranceTypeDtoService
-    {
-        private readonly HttpClient httpClient;
-        public InsuranceTypeDtoService(HttpClient httpClient)
-        {
-            this.httpClient = httpClient;
-        }
-
-        public async Task<List<InsuranceTypeDto>> GetAll()
-        {
-            return await httpClient.GetFromJsonAsync<List<InsuranceTypeDto>>("InsuranceType");
-        }
-
-        public async Task<InsuranceTypeDto> GetById(int id)
-        {
-            return await httpClient.GetFromJsonAsync<InsuranceTypeDto>($"InsuranceType/{id}");
-        }
-
-        public async Task<InsuranceTypeDto> GetByName(string Name)
-        {
-            return await httpClient.GetFromJsonAsync<InsuranceTypeDto>($"InsuranceType/ByName/{Name}");
-        }
-
-        public async Task Add(InsuranceTypeDto employee)
-        {
-            await httpClient.PostAsJsonAsync<InsuranceTypeDto>("InsuranceType", employee);
-        }
-
-        public async Task DeleteById(int id)
-        {
-            await httpClient.DeleteAsync($"InsuranceType/{id}");
-        }
-
-        public async Task Update(InsuranceTypeDto employee)
-        {
-            await httpClient.PutAsJsonAsync<InsuranceTypeDto>("InsuranceType", employee);
-        }
-    }
-}
-
-namespace InsuranceApi.DTOs
-{
-	public class InsuredDto
-	{
-		public int InsuredId { get; set; }
-		public int PolicyHolderId { get; set; }
-		public string Name { get; set; } = null!;
-		public DateTime Dob { get; set; }
-		public string Gender { get; set; } = null!;
-		public DateTime RegistrationDate { get; set; } = DateTime.Now;
-	}
-}
-
-
-namespace InsuranceApi.DTOs
-{
-    public class InsuranceTypeDto
-    {
-        public int InsuranceId { get; set; }
-        public string InsuranceType { get; set; } = null!;
-        public string Description { get; set; } = null!;
-        public decimal? BaseRate { get; set; }
-        public int? CoverageSize { get; set; }
-    }
-}
-
-
-using InsuranceApi.DTOs;
-using System.Net.Http;
-using System.Net.Http.Json;
-namespace ClientApp.Services
-{
-    public interface IInsuredDtoService
-    {
-        Task Add(InsuredDto employee);
-        Task DeleteById(int id);
-        Task<List<InsuredDto>> GetAll();
-        Task<InsuredDto> GetById(int id);
-        Task Update(InsuredDto employee);
-    }
-
-    public class InsuredDtoService : IInsuredDtoService
-    {
-        private readonly HttpClient httpClient;
-        public InsuredDtoService(HttpClient httpClient)
-        {
-            this.httpClient = httpClient;
-        }
-
-        public async Task<List<InsuredDto>> GetAll()
-        {
-            return await httpClient.GetFromJsonAsync<List<InsuredDto>>("Insured");
-        }
-
-        public async Task<InsuredDto> GetById(int id)
-        {
-            return await httpClient.GetFromJsonAsync<InsuredDto>($"Insured/{id}");
-        }
-
-        public async Task Add(InsuredDto employee)
-        {
-            await httpClient.PostAsJsonAsync<InsuredDto>("Insured", employee);
-        }
-
-        public async Task DeleteById(int id)
-        {
-            await httpClient.DeleteAsync($"Insured/{id}");
-        }
-
-        public async Task Update(InsuredDto employee)
-        {
-            await httpClient.PutAsJsonAsync<InsuredDto>("Insured", employee);
-        }
-    }
-}
 @page "/Claim/{policyHolderId:int}"
 @using ClientApp.Services
 @using InsuranceApi.DTOs
+@using PolicyDbService.Services
 
 @inject IClaimDtoService ClaimService
 
 @inject IInsuredDtoService InsuredService
-@inject IInsuranceTypeDtoService InsuranceTypeService
+
+@inject IPolicyService PolicyService
 
 
 
@@ -149,11 +18,7 @@ namespace ClientApp.Services
     <p>Loading claims...</p>
 }
 
-@*  else if (!claim.Any())
-{
-    <p>No claims found for the specified policy holder.</p>
-} 
- *@
+
 else
 {
     <table class="table">
@@ -184,7 +49,7 @@ else
                     <td>@claim.DocumentType</td>
                     <td>@claim.DocumentPath</td>
                     <td>@claim.HospitalId</td>
-                    <td>@insuranceName</td>
+                <td>@isuredperson</td>
                 </tr>
         </tbody>
     </table>
@@ -196,6 +61,7 @@ else
 
     private ClaimDto claim;
     private string insuranceName;
+    private string isuredperson;
 
 
     protected override async Task OnInitializedAsync()
@@ -203,17 +69,12 @@ else
         try
         {
             claim = await ClaimService.GetClaimsByPolicyHolderIdAsync(policyHolderId);
+            
             if (claim != null)
             {
                 // Fetch insured details
-                var insured = await InsuredService.GetById(claim.InsuredPolicyId);
-
-                if (insured != null)
-                {
-                    // Fetch insurance type details
-                    var insuranceType = await InsuranceTypeService.GetById(insured.InsuredId);
-                    insuranceName = insuranceType?.Description;
-                }
+                var insured = await InsuredService.GetById(policyHolderId);
+                 isuredperson = insured.Name;
             }
 
         }
@@ -225,3 +86,36 @@ else
 }
 
 
+
+
+Take help of Logic:
+ <tbody>
+     @if (insuredPolicies != null && insuredPolicies.Any())
+     {
+         var displayedPolicyIds = new HashSet<int>();
+
+         @foreach (var insuredPolicy in insuredPolicies)
+         {
+             var policy = policies.FirstOrDefault(p => p.PolicyId == insuredPolicy.PolicyId);
+
+             if (policy != null && !displayedPolicyIds.Contains(policy.PolicyId))
+             {
+                 displayedPolicyIds.Add(policy.PolicyId); // Mark this policy as displayed
+
+                 var daysLeft = (policy.EndDate - DateTime.Today).Days;
+                 var insuranceType = InsuranceType.FirstOrDefault(it => it.InsuranceId == policy.InsuranceTypeId);
+                 var daysSinceStart = (DateTime.Today - policy.StartDate).Days;
+
+                 <tr class="@GetRowClass(policy.EndDate)">
+                     <td>@insuredPolicy.PolicyId</td>
+                     <td>@insuredPolicy.InsuredPolicyId</td>
+                     <td>@insuranceType?.InsuranceType</td>
+
+
+
+
+I want to connect:-
+1.From Claim Table ==>(take) Insured Policy Id Go to
+2.Insured Policy Table (from Insured Policy Id) ==> (take) Policy Id
+3.Policy Table (from Policy Id) ==> (take) Insurance Type Id
+4.Insurance Type Table (from Policy Id) ==> (take) Name
