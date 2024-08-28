@@ -4,33 +4,48 @@
 @inject IPolicyHolderDtoService PolicyHolderService
 @inject NavigationManager NavigateManager
 
-<div class="user-header">
-    <h2>Welcome, @UserName!</h2>
+<div class="profile-page">
+    <header class="hero">
+        <div class="hero-content">
+            <h1 class="title">Welcome, @UserName!</h1>
+            <p class="subtitle">Your Profile Dashboard</p>
+        </div>
+    </header>
+
+    <main class="content">
+        <section class="user-info">
+            <div class="card">
+                <h2 class="card-title">User Information</h2>
+                <ul class="info-list">
+                    <li><span class="icon-user"></span><strong>Name:</strong> @UserName</li>
+                    <li><span class="icon-location-pin"></span><strong>Address:</strong> @Address</li>
+                    <li><span class="icon-phone"></span><strong>Phone:</strong> @Phone</li>
+                    <li><span class="icon-email"></span><strong>Email:</strong> @Email</li>
+                    <li><span class="icon-status"></span><strong>Status:</strong> @Status</li>
+                </ul>
+            </div>
+        </section>
+
+
+        <div class="claims-section">
+            <div class="dropdown-header">
+                <button @onclick="() => NavigateToClaimStatus(policyHolderId)"><h3>Your Policies</h3></button>
+            </div>
+        </div>
+
+
+        <div class="claims-section">
+            <div class="dropdown-header">
+                <button @onclick="() => NavigateToClaimStatus(policyHolderId)"><h3>Your Claims</h3></button>
+            </div>
+        </div>
+        
+    </main>
+
+    
 </div>
 
-<div class="user-info">
-    <div class="info-card">
-        <h3>User Information</h3>
-        <p><strong>Name:</strong> @UserName</p>
-        <p><strong>Address:</strong> @Address</p>
-        <p><strong>Phone:</strong> @Phone</p>
-        <p><strong>Email:</strong> @Email</p>
-        <p><strong>Status:</strong> @Status</p>
-    </div>
-</div>
 
-
-<div class="claims-section">
-    <div class="dropdown-header">
-        <button @onclick="() => NavigateToClaimStatus(policyHolderId)"><h3>Your Policies</h3></button>
-    </div>
-</div>
-
-<div class="claims-section">
-    <div class="dropdown-header">
-        <button @onclick="() => NavigateToClaimStatus(policyHolderId)"><h3>Your Claims</h3></button>
-    </div>
-</div>
 
 
 @code {
@@ -127,5 +142,3 @@
         }
     </style>
 </div>
-
-It is a profile page give me an extraordinary , out of the blue UI page css
