@@ -1,230 +1,145 @@
-Admin.dto
+@page "/userdashboard/{PolicyHolderId:int}"
+@using ClientApp.Services
+@using InsuranceApi.DTOs
+@inject IPolicyHolderDtoService PolicyHolderService
+@inject NavigationManager NavigateManager
+@inject IClaimDtoService ClaimService
 
-namespace InsuranceApi.DTOs
-{
-    public class AdminDto
+
+<div class="user-header">
+    <h2>Welcome, @UserName!</h2>
+</div>
+
+<div class="user-info">
+    <div class="info-card">
+        <h3>User Information</h3>
+        <p><strong>Name:</strong> @UserName</p>
+        <p><strong>Address:</strong> @Address</p>
+        <p><strong>Phone:</strong> @Phone</p>
+        <p><strong>Email:</strong> @Email</p>
+        <p><strong>Status:</strong> @Status</p>
+    </div>
+</div>
+
+
+<div class="claims-section">
+    <div class="dropdown-header">
+        <button @onclick="() => NavigateToClaimStatus(policyHolderId)"><h3>Your Policies</h3></button>
+    </div>
+</div>
+
+<div class="claims-section">
+    <div class="dropdown-header">
+        <button @onclick="() => NavigateToClaimStatus(policyHolderId)"><h3>Your Claims</h3></button>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public int policyHolderId{ get; set; }
+    private string UserName;
+    private string Address;
+    private string Phone;
+    private string Email;
+    private int Status;
+    private List<PolicyHolderDto> Policies;
+    private List<ClaimDto> UserClaims;
+
+    protected override async Task OnInitializedAsync()
     {
-        public int AdminId { get; set; }
+        // Example to fetch data dynamically based on user context or session
 
-        public string Name { get; set; } = null!;
+        // Fetch the policy holder data by ID
+        var policyHolder = await PolicyHolderService.GetById(policyHolderId);
 
-        public string PasswordHash { get; set; } = null!;
+
+
+        if (policyHolder != null)
+        {
+            // Assign the fetched data to the fields
+            UserName = policyHolder.Name;
+            Address = policyHolder.Address;
+            Phone = policyHolder.Phone;
+            Email = policyHolder.Email;
+            Status = policyHolder.Status;
+
+            // Fetch all policies for this user
+            Policies = await PolicyHolderService.GetAll();
+
+            //Fetch claims for this user
+
+            UserClaims = await PolicyHolderService.GetClaimsByPolicyHolderId(policyHolderId);
+
+        }
+    }
+
+    private  void NavigateToClaimStatus(int policyHolderId)
+    {
+        NavigateManager.NavigateTo($"/Claim/{policyHolderId}");//Put 8
     }
 }
 
 
-AdminContoller.cs
+<div>
+    <style>
 
-using InsuranceApi.Data;
-using InsuranceApi.DTOs;
-using InsuranceApi.Services;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
-namespace InsuranceApi.Controllers
-{
-    public interface IAdminController
-    {
-        Task<IActionResult> Add(AdminDto admin);
-        Task<IActionResult> Delete(int id);
-        Task<IActionResult> GetAll();
-        Task<IActionResult> GetById(int id);
-        Task<IActionResult> Update(AdminDto admin);
-    }
-
-    [Route("api/[controller]")]
-    [ApiController]
-    public class AdminController : ControllerBase, IAdminController
-    {
-        private readonly IAdminService service;
-        public AdminController(IAdminService service)
-        {
-            this.service = service;
+        .user-header {
+            background-color: royalblue;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 5px;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            List<AdminDto> admins = await service.GetAll();
-            return Ok(admins);
+        .info-card, .claims-card, .policy-card, .summary-card, .recent-activities {
+            background-color: white;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 15px;
+            margin-bottom: 15px;
         }
 
-        [HttpDelete]
-        [Route("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            try
-            {
-                await service.Delete(id);
-                return Ok();
+        h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        p, li {
+            color: #555;
+            margin: 5px 0;
+        }
+
+        .dropdown-header {
+            cursor: pointer;
+            background-color: #e0e0e0;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s ease;
+        }
+
+            .dropdown-header:hover {
+                background-color: skyblue;
             }
-            catch (NullReferenceException)
-            {
-                return NotFound();
-            }
+
+        .recent-activities ul {
+            padding-left: 20px;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Add(AdminDto admin)
-        {
-                await service.Add(admin);
-                return Ok();
+        .recent-activities li {
+            margin-bottom: 10px;
         }
 
-        [HttpPut]
-        public async Task<IActionResult> Update(AdminDto admin)
-        {
-            try
-            {
-                await service.Update(admin);
-                return Ok();
-            }
-            catch (NullReferenceException)
-            {
-                return NotFound();
-            }
-        }
-
-        [HttpGet]
-        [Route("{id}")]
-        public async Task<IActionResult> GetById(int id)
-        {
-            try
-            {
-                var found = await service.GetById(id);
-                return Ok(found);
-            }
-            catch (NullReferenceException)
-            {
-                return NotFound();
-            }
-        }
-    }
-}
+    </style>
+</div>
 
 
 
-Admin Data
-using System;
-using System.Collections.Generic;
-
-namespace InsuranceApi.Data;
-
-public partial class Admin
-{
-    public int AdminId { get; set; }
-
-    public string Name { get; set; } = null!;
-
-    public string PasswordHash { get; set; } = null!;
-
-    public virtual ICollection<Blacklist> Blacklists { get; set; } = new List<Blacklist>();
-
-    public virtual ICollection<InsuredPolicy> InsuredPolicies { get; set; } = new List<InsuredPolicy>();
-}
-
-
-AdminServices.cs
-using InsuranceApi.Data;
-using InsuranceApi.DTOs;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
-namespace InsuranceApi.Services
-{
-    public interface IAdminService
-    {
-        Task Add(AdminDto adminDto);
-        Task Delete(int id);
-        Task<List<AdminDto>> GetAll();
-        Task<AdminDto> GetById(int id);
-        Task Update(AdminDto adminDto);
-    }
-
-    public class AdminService : IAdminService
-    {
-        private readonly FnfProjectContext context;
-        public AdminService(FnfProjectContext context)
-        {
-            this.context = context;
-        }
-
-        public async Task<List<AdminDto>> GetAll()
-        {
-            List<AdminDto> adminDtos = new List<AdminDto>();
-            await foreach (var adminTable in context.Admins)
-            {
-                AdminDto adminDto = ConvertToDto(adminTable);
-                adminDtos.Add(adminDto);
-            }
-            return adminDtos;
-        }
-
-        public async Task Delete(int id)
-        {
-            var found = await context.Admins.FirstOrDefaultAsync((adminTable) => adminTable.AdminId == id);
-            if (found != null)
-            {
-                context.Admins.Remove(found);
-                await context.SaveChangesAsync();
-                return;
-            }
-            throw new NullReferenceException();
-        }
-
-        public async Task Add(AdminDto adminDto)
-        {
-            Admin adminTable = new Admin();
-            ConvertToTable(adminDto, adminTable);
-            context.Admins.Add(adminTable);
-            await context.SaveChangesAsync();
-            return;
-        }
-
-        public async Task Update(AdminDto adminDto)
-        {
-            var found = await context.Admins.FirstOrDefaultAsync((adminTable) =>
-                adminTable.AdminId == adminDto.AdminId);
-            if (found != null)
-            {
-                ConvertToTable(adminDto, found);
-                await context.SaveChangesAsync();
-                return;
-            }
-            throw new NullReferenceException();
-        }
-
-        public async Task<AdminDto> GetById(int id)
-        {
-            var found = await context.Admins.FirstOrDefaultAsync((adminTable) => adminTable.AdminId == id);
-            if (found != null)
-            {
-                var adminDto = ConvertToDto(found);
-                return adminDto;
-            }
-            throw new NullReferenceException();
-        }
-
-        private AdminDto ConvertToDto(Admin adminTable)
-        {
-            AdminDto adminDto = new()
-            {
-                AdminId = adminTable.AdminId,
-                Name = adminTable.Name,
-                PasswordHash = adminTable.PasswordHash,
-            };
-            return adminDto;
-        }
-
-        private void ConvertToTable(AdminDto adminDto, Admin adminTable)
-        {
-            adminTable.AdminId = adminDto.AdminId;
-            adminTable.Name = adminDto.Name;
-            adminTable.PasswordHash = adminDto.PasswordHash;
-            return;
-        }
-    }
-}
-
+GetClaimsByPolicyHolderId is throwing error y?
+Use GetAll and retrieve PolicyHolderId
+And retrieve only claims for that policy holder id to the next page in navigation
