@@ -1,171 +1,131 @@
-@page "/Claim/{policyHolderId:int}"
+@page "/userdashboard/{PolicyHolderId:int}"
 @using ClientApp.Services
 @using InsuranceApi.DTOs
- 
- 
-@inject IClaimDtoService ClaimService
-@inject IInsuredDtoService InsuredService
-@inject IPolicyDtoService PolicyService
-@inject IInsuranceTypeDtoService InsuranceTypeService
-@inject IInsuredPolicyDtoService InsurancePolicyService
- 
- 
-<h3>Claim Status</h3>
- 
-@if (claim == null)
-{
-<p>Loading claims...</p>
-}
- 
- 
-else
-{
-<table class="table">
-<thead>
-<tr>
-<th>ClaimId</th>
-<th>Insurance ID</th>
-<th>Policy Holder ID</th>
-<th>Claim Date</th>
-<th>Claim Amount</th>
-<th>Claim Status</th>
-<th>Dispense Amount</th>
-<th>Dispense Type</th>
-<th>Dispense Path</th>
-<th>Hospital ID</th>
-<td>Name</td>
-<td>Plan</td>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>@claim.ClaimId</td>
-<td>@claim.InsuredPolicyId</td>
-<td>@claim.PolicyHolderId</td>
-<td>@claim.ClaimDate.ToShortDateString()</td>
-<td>@claim.ClaimAmount</td>
-<td>@claim.ClaimStatus</td>
-<td>@claim.DispenseAmount</td>
-<td>@claim.DocumentType</td>
-<td>@claim.DocumentPath</td>
-<td>@claim.HospitalId</td>
-<td>@isuredperson</td>
-<td>@insuranceName</td>
-</tr>
-</tbody>
-</table>
-}
- 
+@inject IPolicyHolderDtoService PolicyHolderService
+@inject NavigationManager NavigateManager
+
+<div class="user-header">
+    <h2>Welcome, @UserName!</h2>
+</div>
+
+<div class="user-info">
+    <div class="info-card">
+        <h3>User Information</h3>
+        <p><strong>Name:</strong> @UserName</p>
+        <p><strong>Address:</strong> @Address</p>
+        <p><strong>Phone:</strong> @Phone</p>
+        <p><strong>Email:</strong> @Email</p>
+        <p><strong>Status:</strong> @Status</p>
+    </div>
+</div>
+
+
+<div class="claims-section">
+    <div class="dropdown-header">
+        <button @onclick="() => NavigateToClaimStatus(policyHolderId)"><h3>Your Policies</h3></button>
+    </div>
+</div>
+
+<div class="claims-section">
+    <div class="dropdown-header">
+        <button @onclick="() => NavigateToClaimStatus(policyHolderId)"><h3>Your Claims</h3></button>
+    </div>
+</div>
+
+
 @code {
     [Parameter]
     public int policyHolderId { get; set; }
- 
-    private ClaimDto claim;
-    private string insuranceName;
-    private string isuredperson;
- 
- 
+    private string UserName;
+    private string Address;
+    private string Phone;
+    private string Email;
+    private int Status;
+    private List<PolicyHolderDto> Policies;
+
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            claim = await ClaimService.GetById(policyHolderId);
- 
- 
-            if (claim != null)
-            {
-                // Fetch insured details
-                var insured = await InsuredService.GetById(policyHolderId);
-                isuredperson = insured.Name;
- 
- 
-                var insuredPolicyId = await InsurancePolicyService.GetById(claim.InsuredPolicyId);
-                if (insuredPolicyId != null)
-                {
-                    var policyId = await PolicyService.GetById(insuredPolicyId.PolicyId);
-                    if(policyId!=null)
-                    {
-                        var insuranceType = await InsuranceTypeService.GetById(policyId.InsuranceTypeId);
-                        insuranceName = insuranceType?.InsuranceType;
-                    }
-                }
-            }
+        // Example to fetch data dynamically based on user context or session
 
- 
-        }
-    catch (Exception ex)
+        // Fetch the policy holder data by ID
+        var policyHolder = await PolicyHolderService.GetById(policyHolderId);
+
+
+        if (policyHolder != null)
         {
-            Console.WriteLine($"Error fetching claims: {ex.Message}");
+            // Assign the fetched data to the fields
+            UserName = policyHolder.Name;
+            Address = policyHolder.Address;
+            Phone = policyHolder.Phone;
+            Email = policyHolder.Email;
+            Status = policyHolder.Status;
+
+            // Fetch all policies for this user
+            Policies = await PolicyHolderService.GetAll();
         }
     }
+
+    private void NavigateToClaimStatus(int policyHolderId)
+    {
+        NavigateManager.NavigateTo($"/Claim/{policyHolderId}");//Put 8
+    }
 }
- 
- 
+
+
 <div>
-<style>
-        /* Table Styling */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            font-size: 1em;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-width: 400px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
-            background-color: #f9f9f9;
+    <style>
+
+        .user-header {
+            background-color: royalblue;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 5px;
         }
- 
-        /* Header Styling */
-        thead tr {
-            background-color: #009879;
-            color: #ffffff;
-            text-align: left;
-            font-weight: bold;
+
+        .info-card, .claims-card, .policy-card, .summary-card, .recent-activities {
+            background-color: white;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 15px;
+            margin-bottom: 15px;
         }
- 
-        /* Row Styling */
-        tbody tr {
-            border-bottom: 1px solid #dddddd;
+
+        h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: inline-block;
         }
- 
-            tbody tr:nth-of-type(even) {
-                background-color: #f3f3f3;
+
+        p, li {
+            color: #555;
+            margin: 5px 0;
+        }
+
+        .dropdown-header {
+            cursor: pointer;
+            background-color: #e0e0e0;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s ease;
+        }
+
+            .dropdown-header:hover {
+                background-color: skyblue;
             }
- 
-            tbody tr:last-of-type {
-                border-bottom: 2px solid #009879;
-            }
- 
-        /* Sticky Header */
-        th {
-            position: sticky;
-            top: 0;
-            background-color: #009879;
-            color: #ffffff;
-            z-index: 2;
+
+        .recent-activities ul {
+            padding-left: 20px;
         }
- 
-        /* Cell Padding */
-        th, td {
-            padding: 12px 15px;
+
+        .recent-activities li {
+            margin-bottom: 10px;
         }
- 
-        /* Responsive Table Wrapper */
-        .table-wrapper {
-            overflow-x: auto;
-        }
- 
-        /* Hover Effects */
-        tbody tr:hover {
-            background-color: #f1f1f1;
-        }
- 
-        /* Caption Styling */
-        caption {
-            caption-side: bottom;
-            font-style: italic;
-            text-align: right;
-            margin-top: 10px;
-        }
-</style>
+    </style>
 </div>
+
+It is a profile page give me an extraordinary , out of the blue UI page css
