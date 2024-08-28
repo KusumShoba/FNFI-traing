@@ -15,22 +15,25 @@ namespace InsuranceApi.Controllers
         Task<IActionResult> GetAll();
         Task<IActionResult> GetById(int id);
         Task<IActionResult> Update(ClaimDto claimDto);
+        Task<ActionResult<IEnumerable<ClaimDto>>> GetClaimsByPolicyHolderId(int policyHolderId); // Add this method to the interface
     }
+
     [EnableCors("cors")]
     [Route("api/[controller]")]
     [ApiController]
     public class ClaimController : ControllerBase, IClaimController
     {
-        private readonly IClaimService service;
+        private readonly IClaimService _service;
+
         public ClaimController(IClaimService service)
         {
-            this.service = service;
+            _service = service;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            List<ClaimDto> claims = await service.GetAll();
+            List<ClaimDto> claims = await _service.GetAll();
             return Ok(claims);
         }
 
@@ -40,7 +43,7 @@ namespace InsuranceApi.Controllers
         {
             try
             {
-                await service.Delete(id);
+                await _service.Delete(id);
                 return Ok();
             }
             catch (NullReferenceException)
@@ -52,7 +55,7 @@ namespace InsuranceApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Add(ClaimDto claim)
         {
-            await service.Add(claim);
+            await _service.Add(claim);
             return Ok();
         }
 
@@ -61,7 +64,7 @@ namespace InsuranceApi.Controllers
         {
             try
             {
-                await service.Update(claim);
+                await _service.Update(claim);
                 return Ok();
             }
             catch (NullReferenceException)
@@ -76,7 +79,7 @@ namespace InsuranceApi.Controllers
         {
             try
             {
-                var found = await service.GetById(id);
+                var found = await _service.GetById(id);
                 return Ok(found);
             }
             catch (NullReferenceException)
@@ -85,24 +88,18 @@ namespace InsuranceApi.Controllers
             }
         }
 
+        // New method to get claims by PolicyHolderId
         [HttpGet("GetClaimsByPolicyHolderId/{policyHolderId}")]
         public async Task<ActionResult<IEnumerable<ClaimDto>>> GetClaimsByPolicyHolderId(int policyHolderId)
         {
-            var claims = await _context.Claims
-                                       .Where(c => c.PolicyHolderId == policyHolderId)
-                                       .ToListAsync();
+            var claims = await _service.GetClaimsByPolicyHolderId(policyHolderId);
 
             if (claims == null || claims.Count == 0)
             {
                 return NotFound();
             }
 
-            return Ok(_mapper.Map<List<ClaimDto>>(claims));
+            return Ok(claims);
         }
-
-
     }
 }
-
-
-Do the changes in this controller
