@@ -1,105 +1,28 @@
-using InsuranceApi.Data;
-using InsuranceApi.DTOs;
-using InsuranceApi.Services;
-using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
-namespace InsuranceApi.Controllers
+try
 {
-    public interface IClaimController
+    var policyHolder = await PolicyHolderService.GetById(PolicyHolderId);
+    if (policyHolder == null)
     {
-        Task<IActionResult> Add(ClaimDto claimDto);
-        Task<IActionResult> Delete(int id);
-        Task<IActionResult> GetAll();
-        Task<IActionResult> GetById(int id);
-        Task<IActionResult> Update(ClaimDto claimDto);
-        Task<ActionResult<IEnumerable<ClaimDto>>> GetClaimsByPolicyHolderId(int policyHolderId); // Add this method to the interface
+        errorMessage = "Policy holder not found.";
+        return;
     }
 
-    [EnableCors("cors")]
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ClaimController : ControllerBase, IClaimController
+    var insureds = (await InsuredService.GetAll())
+                    .Where(i => i.PolicyHolderId == policyHolder.PolicyHolderId)
+                    .ToList();
+
+    if (insureds.Any())
     {
-        private readonly IClaimService _service;
+        var insuredIds = insureds.Select(i => i.InsuredId).Distinct().ToList();
+        insuredPolicies = (await InsuredPolicyService.GetAll())
+                            .Where(ip => insuredIds.Contains(ip.InsuredId))
+                            .ToList();
 
-        public ClaimController(IClaimService service)
+        if (insuredPolicies.Any())
         {
-            _service = service;
-        }
+            var policyIds = insuredPolicies.Select(ip => ip.PolicyId).Distinct().ToList();
+            policies = (await PolicyService.GetAll())
+                        .Where(p => policyIds.Contains(p.PolicyId))
+                        .ToList();
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            List<ClaimDto> claims = await _service.GetAll();
-            return Ok(claims);
-        }
-
-        [HttpDelete]
-        [Route("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            try
-            {
-                await _service.Delete(id);
-                return Ok();
-            }
-            catch (NullReferenceException)
-            {
-                return NotFound();
-            }
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Add(ClaimDto claim)
-        {
-            await _service.Add(claim);
-            return Ok();
-        }
-
-        [HttpPut]
-        public async Task<IActionResult> Update(ClaimDto claim)
-        {
-            try
-            {
-                await _service.Update(claim);
-                return Ok();
-            }
-            catch (NullReferenceException)
-            {
-                return NotFound();
-            }
-        }
-
-        [HttpGet]
-        [Route("{id}")]
-        public async Task<IActionResult> GetById(int id)
-        {
-            try
-            {
-                var found = await _service.GetById(id);
-                return Ok(found);
-            }
-            catch (NullReferenceException)
-            {
-                return NotFound();
-            }
-        }
-
-        // New method to get claims by PolicyHolderId
-        [HttpGet("GetClaimsByPolicyHolderId/{policyHolderId}")]
-        public async Task<ActionResult<IEnumerable<ClaimDto>>> GetClaimsByPolicyHolderId(int policyHolderId)
-        {
-            var claims = await _service.GetClaimsByPolicyHolderId(policyHolderId);
-
-            if (claims == null || claims.Count == 0)
-            {
-                return NotFound();
-            }
-
-            return Ok(claims);
-        }
-    }
-}
+Like this As it is given for policies I want the claims i.e.,  the Claims only for that particular policy holder
