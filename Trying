@@ -39,10 +39,10 @@
                 <button @onclick="() => NavigateToClaimStatus(policyHolderId)"><h3>Your Claims</h3></button>
             </div>
         </div>
-        
+
     </main>
 
-    
+
 </div>
 
 
@@ -88,57 +88,143 @@
 
 
 <div>
+
     <style>
 
-        .user-header {
-            background-color: royalblue;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            border-radius: 5px;
-        }
-
-        .info-card, .claims-card, .policy-card, .summary-card, .recent-activities {
-            background-color: white;
-            border-radius: 5px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin-top: 15px;
-            margin-bottom: 15px;
-        }
-
-        h3 {
-            color: #333;
-            margin-bottom: 15px;
-            display: inline-block;
-        }
-
-        p, li {
-            color: #555;
-            margin: 5px 0;
-        }
-
-        .dropdown-header {
-            cursor: pointer;
-            background-color: #e0e0e0;
-            padding: 10px;
-            border-radius: 5px;
+        .profile-page {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
-            transition: background-color 0.3s ease;
+            justify-content: center;
+            padding: 20px;
         }
 
-            .dropdown-header:hover {
-                background-color: skyblue;
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+            padding: 50px 20px;
+            text-align: center;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .hero::before {
+                content: '';
+                position: absolute;
+                top: -50px;
+                left: -50px;
+                width: 150px;
+                height: 150px;
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 50%;
+                animation: spin 10s linear infinite;
             }
 
-        .recent-activities ul {
-            padding-left: 20px;
+        .hero-content {
+            position: relative;
+            z-index: 2;
         }
 
-        .recent-activities li {
-            margin-bottom: 10px;
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
         }
+
+        .subtitle {
+            font-size: 1.2rem;
+            font-weight: 300;
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            width: 100%;
+        }
+
+        .user-info .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+            .user-info .card:hover {
+                transform: translateY(-10px);
+                box-shadow: 0 25px 40px rgba(0, 0, 0, 0.2);
+            }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .info-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+            .info-list li {
+                display: flex;
+                align-items: center;
+                margin-bottom: 15px;
+                font-size: 1rem;
+                color: #555;
+            }
+
+                .info-list li .icon-user,
+                .info-list li .icon-location-pin,
+                .info-list li .icon-phone,
+                .info-list li .icon-email,
+                .info-list li .icon-status {
+                    margin-right: 10px;
+                    font-size: 1.2rem;
+                    color: #764ba2;
+                }
+
+        .claims-section .dropdown-header {
+            background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+            .claims-section .dropdown-header:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+            }
+
+        .claims-section h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
     </style>
 </div>
+<style>
+        @keyframes spin {
+    0% {
+    transform: rotate(0deg);
+    }
+    100% {
+    transform: rotate(360deg);
+    }
+    }
+</style>
