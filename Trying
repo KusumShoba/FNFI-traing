@@ -1,28 +1,171 @@
-try
+@page "/Claim/{policyHolderId:int}"
+@using ClientApp.Services
+@using InsuranceApi.DTOs
+ 
+ 
+@inject IClaimDtoService ClaimService
+@inject IInsuredDtoService InsuredService
+@inject IPolicyDtoService PolicyService
+@inject IInsuranceTypeDtoService InsuranceTypeService
+@inject IInsuredPolicyDtoService InsurancePolicyService
+ 
+ 
+<h3>Claim Status</h3>
+ 
+@if (claim == null)
 {
-    var policyHolder = await PolicyHolderService.GetById(PolicyHolderId);
-    if (policyHolder == null)
+<p>Loading claims...</p>
+}
+ 
+ 
+else
+{
+<table class="table">
+<thead>
+<tr>
+<th>ClaimId</th>
+<th>Insurance ID</th>
+<th>Policy Holder ID</th>
+<th>Claim Date</th>
+<th>Claim Amount</th>
+<th>Claim Status</th>
+<th>Dispense Amount</th>
+<th>Dispense Type</th>
+<th>Dispense Path</th>
+<th>Hospital ID</th>
+<td>Name</td>
+<td>Plan</td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>@claim.ClaimId</td>
+<td>@claim.InsuredPolicyId</td>
+<td>@claim.PolicyHolderId</td>
+<td>@claim.ClaimDate.ToShortDateString()</td>
+<td>@claim.ClaimAmount</td>
+<td>@claim.ClaimStatus</td>
+<td>@claim.DispenseAmount</td>
+<td>@claim.DocumentType</td>
+<td>@claim.DocumentPath</td>
+<td>@claim.HospitalId</td>
+<td>@isuredperson</td>
+<td>@insuranceName</td>
+</tr>
+</tbody>
+</table>
+}
+ 
+@code {
+    [Parameter]
+    public int policyHolderId { get; set; }
+ 
+    private ClaimDto claim;
+    private string insuranceName;
+    private string isuredperson;
+ 
+ 
+    protected override async Task OnInitializedAsync()
     {
-        errorMessage = "Policy holder not found.";
-        return;
-    }
-
-    var insureds = (await InsuredService.GetAll())
-                    .Where(i => i.PolicyHolderId == policyHolder.PolicyHolderId)
-                    .ToList();
-
-    if (insureds.Any())
-    {
-        var insuredIds = insureds.Select(i => i.InsuredId).Distinct().ToList();
-        insuredPolicies = (await InsuredPolicyService.GetAll())
-                            .Where(ip => insuredIds.Contains(ip.InsuredId))
-                            .ToList();
-
-        if (insuredPolicies.Any())
+        try
         {
-            var policyIds = insuredPolicies.Select(ip => ip.PolicyId).Distinct().ToList();
-            policies = (await PolicyService.GetAll())
-                        .Where(p => policyIds.Contains(p.PolicyId))
-                        .ToList();
+            claim = await ClaimService.GetById(policyHolderId);
+ 
+ 
+            if (claim != null)
+            {
+                // Fetch insured details
+                var insured = await InsuredService.GetById(policyHolderId);
+                isuredperson = insured.Name;
+ 
+ 
+                var insuredPolicyId = await InsurancePolicyService.GetById(claim.InsuredPolicyId);
+                if (insuredPolicyId != null)
+                {
+                    var policyId = await PolicyService.GetById(insuredPolicyId.PolicyId);
+                    if(policyId!=null)
+                    {
+                        var insuranceType = await InsuranceTypeService.GetById(policyId.InsuranceTypeId);
+                        insuranceName = insuranceType?.InsuranceType;
+                    }
+                }
+            }
 
-Like this As it is given for policies I want the claims i.e.,  the Claims only for that particular policy holder
+ 
+        }
+    catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching claims: {ex.Message}");
+        }
+    }
+}
+ 
+ 
+<div>
+<style>
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 1em;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-width: 400px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+            background-color: #f9f9f9;
+        }
+ 
+        /* Header Styling */
+        thead tr {
+            background-color: #009879;
+            color: #ffffff;
+            text-align: left;
+            font-weight: bold;
+        }
+ 
+        /* Row Styling */
+        tbody tr {
+            border-bottom: 1px solid #dddddd;
+        }
+ 
+            tbody tr:nth-of-type(even) {
+                background-color: #f3f3f3;
+            }
+ 
+            tbody tr:last-of-type {
+                border-bottom: 2px solid #009879;
+            }
+ 
+        /* Sticky Header */
+        th {
+            position: sticky;
+            top: 0;
+            background-color: #009879;
+            color: #ffffff;
+            z-index: 2;
+        }
+ 
+        /* Cell Padding */
+        th, td {
+            padding: 12px 15px;
+        }
+ 
+        /* Responsive Table Wrapper */
+        .table-wrapper {
+            overflow-x: auto;
+        }
+ 
+        /* Hover Effects */
+        tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+ 
+        /* Caption Styling */
+        caption {
+            caption-side: bottom;
+            font-style: italic;
+            text-align: right;
+            margin-top: 10px;
+        }
+</style>
+</div>
